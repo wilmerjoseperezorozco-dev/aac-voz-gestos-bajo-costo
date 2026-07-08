@@ -9,7 +9,7 @@
 > [github.com/wilmerjoseperezorozco-dev/aac-voz-gestos-bajo-costo](https://github.com/wilmerjoseperezorozco-dev/aac-voz-gestos-bajo-costo).
 
 Sistema mínimo y económico que aprende a reconocer **palabras seleccionadas
-pronunciadas por una persona específica** (participante YP, 35 años,
+pronunciadas por una persona específica** (participante YP, 38 años,
 desconexión motora del habla) y las convierte en voz sintetizada clara.
 No requiere internet, GPU ni hardware especial: solo esta PC y un micrófono
 casero (audífonos de celular sirven).

@@ -110,12 +110,19 @@ experimental de interferencia cognitivo-motora con diseño de
 entrenamiento-en-canal-único / prueba-en-doble-tarea.
 
 ### Participante
-Alias **YP**, 35 años. Perfil funcional: desconexión motora del habla;
-conserva capacidad de reconocimiento de estímulos visuales y sonoros
-(usada deliberadamente en el protocolo para evitar el modelado verbal —
-ver más abajo). **[PENDIENTE]** caracterización clínica formal
-(fonoaudiológica/neurológica) si llega a realizarse; hasta entonces se
-reporta como perfil funcional, no diagnóstico.
+Alias **YP**, 38 años, sexo femenino. Perfil funcional: condición
+neuromotora congénita con compromiso del habla y motor; conserva
+capacidad de reconocimiento de estímulos visuales y sonoros (usada
+deliberadamente en el protocolo para evitar el modelado verbal — ver más
+abajo). Cuenta con **certificación oficial de discapacidad** (Ministerio
+de Salud y Protección Social de Colombia) y caracterización clínica
+formal (historia clínica e informe de valoración multidisciplinaria).
+Por sensibilidad de datos de salud, el diagnóstico específico y los
+puntajes de funcionamiento **no se publican** en este documento; se
+mantienen en un anexo confidencial disponible para el comité de ética
+institucional. Esta caracterización resuelve, para efectos del comité de
+ética, la limitación de "ausencia de caracterización clínica formal"
+señalada en versiones anteriores de este protocolo.
 
 ### Protocolo de adquisición
 Micrófono a distancia fija de aproximadamente 15 cm de la boca (resuelto
@@ -234,7 +241,12 @@ departamento del Atlántico.
   dentro del mismo sujeto).
 - **Vocabulario cerrado**: 8 palabras y 3 gestos; no se ha evaluado la
   curva de degradación al ampliar el vocabulario.
-- **Sin caracterización clínica formal** del perfil motor de YP.
+- **Diagnóstico específico no publicado**: existe caracterización clínica
+  formal (certificación oficial de discapacidad), pero se mantiene
+  confidencial por sensibilidad de datos de salud; esto limita la
+  posibilidad de que revisores externos evalúen directamente la
+  correspondencia entre el perfil motor y los resultados técnicos, salvo
+  a través del comité de ética institucional.
 - **Sensibilidad al ruido ambiental**: documentada y parcialmente resuelta
   mediante protocolo de entorno casero (`entorno-fisico-captura.md`), pero
   no cuantificada de forma experimental entre entornos distintos.
@@ -294,8 +306,10 @@ destino (APA o Vancouver).
    aplicar la prueba de McNemar o Wilcoxon correspondiente.
 2. Obtener aval del comité de ética institucional
    (`Protocolo_Investigacion_MVP_Voz_Gestos.docx`).
-3. Definir si se busca o no una caracterización clínica formal del perfil
-   de YP antes de publicar (afecta el lenguaje diagnóstico permitido).
+3. ~~Definir si se busca caracterización clínica formal~~ — **RESUELTO
+   2026-07-08**: existe certificación oficial de discapacidad y registro
+   clínico; se mantiene en anexo confidencial (`docs/CONFIDENCIAL-caracterizacion-clinica.md`,
+   excluido de git), no en el manuscrito público.
 4. Completar validación en vivo del flujo secuencial rediseñado
    (`multimodal_predecir.py`).
 5. Crear el repositorio de código abierto y enlazarlo en "Disponibilidad

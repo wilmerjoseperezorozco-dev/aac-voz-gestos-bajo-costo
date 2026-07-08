@@ -1,6 +1,6 @@
 # Protocolo de validación documentada — MVP predicción de voz
 
-**Participante:** YP (mujer, 35 años, desconexión motora del habla; reconoce
+**Participante:** YP (mujer, 38 años, desconexión motora del habla; reconoce
 sonidos e imágenes). **Objetivo:** demostrar de forma medible y reproducible
 que un sistema personalizado de bajo costo puede traducir sus emisiones
 vocales a palabras funcionales.

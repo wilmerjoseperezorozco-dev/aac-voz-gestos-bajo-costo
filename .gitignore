@@ -12,6 +12,12 @@ modelos/
 # libre que podrían contener detalles identificables por accidente)
 registros/
 
+# Documentación clínica confidencial — NUNCA publicar (diagnóstico,
+# historia clínica, cualquier dato de salud identificable). Solo para
+# uso interno / comité de ética, nunca para el repositorio público.
+CONFIDENCIAL-*
+*confidencial*
+
 # Python
 __pycache__/
 *.pyc
