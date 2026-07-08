@@ -5,7 +5,8 @@
 > sido evaluado ni registrado ante ninguna autoridad sanitaria (incluida
 > INVIMA en Colombia), y no está diseñado para diagnóstico, tratamiento ni
 > monitoreo clínico de ninguna condición. Uso bajo responsabilidad propia.
-> Licencia: MIT (ver [LICENSE](LICENSE)).
+> Licencia: MIT (ver [LICENSE](LICENSE)). Repositorio:
+> [github.com/wilmerjoseperezorozco-dev/aac-voz-gestos-bajo-costo](https://github.com/wilmerjoseperezorozco-dev/aac-voz-gestos-bajo-costo).
 
 Sistema mínimo y económico que aprende a reconocer **palabras seleccionadas
 pronunciadas por una persona específica** (participante YP, 35 años,
