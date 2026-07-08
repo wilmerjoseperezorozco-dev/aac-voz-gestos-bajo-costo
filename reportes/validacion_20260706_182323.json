@@ -1,0 +1,149 @@
+{
+  "exactitud_global": 0.6625,
+  "total_muestras": 80,
+  "palabras": [
+    "agua",
+    "ayuda",
+    "bano",
+    "comer",
+    "dolor",
+    "mama",
+    "no",
+    "si"
+  ],
+  "matriz_confusion": [
+    [
+      6,
+      0,
+      0,
+      0,
+      1,
+      0,
+      1,
+      2
+    ],
+    [
+      0,
+      8,
+      1,
+      0,
+      0,
+      0,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      8,
+      1,
+      0,
+      1,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      1,
+      5,
+      0,
+      2,
+      1,
+      1
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      9,
+      0,
+      0,
+      1
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      10,
+      0,
+      0
+    ],
+    [
+      1,
+      1,
+      0,
+      1,
+      4,
+      2,
+      1,
+      0
+    ],
+    [
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      2,
+      6
+    ]
+  ],
+  "por_palabra": {
+    "agua": {
+      "muestras": 10,
+      "aciertos": 6,
+      "exactitud": 0.6
+    },
+    "ayuda": {
+      "muestras": 10,
+      "aciertos": 8,
+      "exactitud": 0.8
+    },
+    "bano": {
+      "muestras": 10,
+      "aciertos": 8,
+      "exactitud": 0.8
+    },
+    "comer": {
+      "muestras": 10,
+      "aciertos": 5,
+      "exactitud": 0.5
+    },
+    "dolor": {
+      "muestras": 10,
+      "aciertos": 9,
+      "exactitud": 0.9
+    },
+    "mama": {
+      "muestras": 10,
+      "aciertos": 10,
+      "exactitud": 1.0
+    },
+    "no": {
+      "muestras": 10,
+      "aciertos": 1,
+      "exactitud": 0.1
+    },
+    "si": {
+      "muestras": 10,
+      "aciertos": 6,
+      "exactitud": 0.6
+    }
+  },
+  "fecha": "2026-07-06T18:23:23",
+  "config": {
+    "tipo": "knn-dtw",
+    "k_vecinos": 3,
+    "umbral_confianza": 0.5,
+    "frecuencia_muestreo": 16000,
+    "duracion_grabacion_seg": 2.0,
+    "n_mfcc": 13,
+    "ventana_ms": 25,
+    "salto_ms": 10
+  }
+}

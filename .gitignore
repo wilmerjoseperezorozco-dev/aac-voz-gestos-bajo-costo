@@ -1,0 +1,23 @@
+# Datos biométricos reales de YP — NUNCA publicar (Ley 1581/2012)
+data/
+data_gestos/
+data_vivo_confirmada/
+data_descartes/
+
+# Modelos entrenados: contienen secuencias MFCC/pose derivadas de su voz
+# y movimiento reales — son datos biométricos derivados, no solo pesos.
+modelos/
+
+# Registros operativos de sesiones (metadatos + observaciones de texto
+# libre que podrían contener detalles identificables por accidente)
+registros/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Sistema operativo / editor
+.DS_Store
+Thumbs.db
+*.log

@@ -1,0 +1,8 @@
+numpy>=2.0
+scipy>=1.14
+matplotlib>=3.8
+sounddevice>=0.5
+soundfile>=0.13
+pyttsx3>=2.99
+opencv-python>=4.10
+mediapipe>=0.10.30

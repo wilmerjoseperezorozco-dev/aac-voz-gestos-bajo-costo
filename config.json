@@ -1,0 +1,52 @@
+{
+  "participante": {
+    "alias": "YP",
+    "edad": 35,
+    "perfil": "Desconexión motora del habla (apraxia/disartria a caracterizar). Reconoce sonidos e imágenes.",
+    "nota": "Usar alias en todo registro público. El nombre completo solo en el consentimiento informado físico."
+  },
+  "vocabulario": [
+    {"palabra": "agua",   "emoji": "💧", "categoria": "necesidad"},
+    {"palabra": "si",     "emoji": "✅", "categoria": "respuesta"},
+    {"palabra": "no",     "emoji": "❌", "categoria": "respuesta"},
+    {"palabra": "dolor",  "emoji": "🤕", "categoria": "salud"},
+    {"palabra": "bano",   "emoji": "🚻", "categoria": "necesidad"},
+    {"palabra": "ayuda",  "emoji": "🆘", "categoria": "urgencia"},
+    {"palabra": "comer",  "emoji": "🍽️", "categoria": "necesidad"},
+    {"palabra": "mama",   "emoji": "👩", "categoria": "personas"}
+  ],
+  "audio": {
+    "frecuencia_muestreo": 16000,
+    "duracion_grabacion_seg": 3.0,
+    "rms_minimo_voz": 0.003,
+    "n_mfcc": 13,
+    "ventana_ms": 25,
+    "salto_ms": 10
+  },
+  "modelo": {
+    "tipo": "knn-dtw",
+    "k_vecinos": 3,
+    "umbral_confianza": 0.99
+  },
+  "muestras_por_palabra_objetivo": 10,
+  "gestos": [
+    {"gesto": "si_mano_arriba",   "descripcion": "Levantar una mano por encima del hombro", "significado": "si"},
+    {"gesto": "no_cabeza_lado",   "descripcion": "Girar la cabeza a un lado y volver",      "significado": "no"},
+    {"gesto": "ayuda_dos_manos",  "descripcion": "Levantar ambas manos",                    "significado": "ayuda"}
+  ],
+  "camara": {
+    "indice": 0,
+    "duracion_captura_seg": 2.5,
+    "modelo_pose": "modelos/pose_landmarker_lite.task"
+  },
+  "muestras_por_gesto_objetivo": 10,
+  "fusion": [
+    {"significado": "si",    "palabra": "si",    "gesto": "si_mano_arriba",  "emoji": "✅"},
+    {"significado": "no",    "palabra": "no",    "gesto": "no_cabeza_lado",  "emoji": "❌"},
+    {"significado": "ayuda", "palabra": "ayuda", "gesto": "ayuda_dos_manos", "emoji": "🆘"}
+  ],
+  "multimodal": {
+    "duracion_captura_seg": 3.0,
+    "muestras_por_par_objetivo": 10
+  }
+}

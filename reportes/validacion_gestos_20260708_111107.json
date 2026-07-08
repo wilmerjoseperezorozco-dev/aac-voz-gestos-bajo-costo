@@ -1,0 +1,45 @@
+{
+  "exactitud_global": 0.8,
+  "total_muestras": 30,
+  "palabras": [
+    "ayuda_dos_manos",
+    "no_cabeza_lado",
+    "si_mano_arriba"
+  ],
+  "matriz_confusion": [
+    [
+      10,
+      0,
+      0
+    ],
+    [
+      3,
+      7,
+      0
+    ],
+    [
+      3,
+      0,
+      7
+    ]
+  ],
+  "por_palabra": {
+    "ayuda_dos_manos": {
+      "muestras": 10,
+      "aciertos": 10,
+      "exactitud": 1.0
+    },
+    "no_cabeza_lado": {
+      "muestras": 10,
+      "aciertos": 7,
+      "exactitud": 0.7
+    },
+    "si_mano_arriba": {
+      "muestras": 10,
+      "aciertos": 7,
+      "exactitud": 0.7
+    }
+  },
+  "fecha": "2026-07-08T11:11:07",
+  "canal": "gestos"
+}

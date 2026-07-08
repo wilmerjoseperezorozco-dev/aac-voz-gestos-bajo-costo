@@ -1,0 +1,150 @@
+{
+  "exactitud_global": 0.8120300751879699,
+  "total_muestras": 133,
+  "palabras": [
+    "agua",
+    "ayuda",
+    "bano",
+    "comer",
+    "dolor",
+    "mama",
+    "no",
+    "si"
+  ],
+  "matriz_confusion": [
+    [
+      10,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      19,
+      0,
+      0,
+      0,
+      1,
+      2,
+      0
+    ],
+    [
+      1,
+      0,
+      8,
+      0,
+      0,
+      1,
+      0,
+      1
+    ],
+    [
+      0,
+      2,
+      0,
+      12,
+      0,
+      1,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      10,
+      0,
+      2,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      2,
+      0,
+      14,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      0,
+      0,
+      0,
+      2,
+      17,
+      2
+    ],
+    [
+      0,
+      2,
+      0,
+      1,
+      0,
+      0,
+      0,
+      18
+    ]
+  ],
+  "por_palabra": {
+    "agua": {
+      "muestras": 13,
+      "aciertos": 10,
+      "exactitud": 0.7692307692307693
+    },
+    "ayuda": {
+      "muestras": 22,
+      "aciertos": 19,
+      "exactitud": 0.8636363636363636
+    },
+    "bano": {
+      "muestras": 11,
+      "aciertos": 8,
+      "exactitud": 0.7272727272727273
+    },
+    "comer": {
+      "muestras": 15,
+      "aciertos": 12,
+      "exactitud": 0.8
+    },
+    "dolor": {
+      "muestras": 12,
+      "aciertos": 10,
+      "exactitud": 0.8333333333333334
+    },
+    "mama": {
+      "muestras": 17,
+      "aciertos": 14,
+      "exactitud": 0.8235294117647058
+    },
+    "no": {
+      "muestras": 22,
+      "aciertos": 17,
+      "exactitud": 0.7727272727272727
+    },
+    "si": {
+      "muestras": 21,
+      "aciertos": 18,
+      "exactitud": 0.8571428571428571
+    }
+  },
+  "fecha": "2026-07-08T10:55:08",
+  "config": {
+    "tipo": "knn-dtw",
+    "k_vecinos": 3,
+    "umbral_confianza": 0.99,
+    "frecuencia_muestreo": 16000,
+    "duracion_grabacion_seg": 3.0,
+    "rms_minimo_voz": 0.003,
+    "n_mfcc": 13,
+    "ventana_ms": 25,
+    "salto_ms": 10
+  }
+}
