@@ -13,7 +13,10 @@
     {"palabra": "bano",   "emoji": "🚻", "categoria": "necesidad"},
     {"palabra": "ayuda",  "emoji": "🆘", "categoria": "urgencia"},
     {"palabra": "comer",  "emoji": "🍽️", "categoria": "necesidad"},
-    {"palabra": "mama",   "emoji": "👩", "categoria": "personas"}
+    {"palabra": "mama",   "emoji": "👩", "categoria": "personas"},
+    {"palabra": "cansada", "emoji": "😴", "categoria": "necesidad"},
+    {"palabra": "frio",    "emoji": "🥶", "categoria": "necesidad"},
+    {"palabra": "salir",   "emoji": "🚪", "categoria": "necesidad"}
   ],
   "audio": {
     "frecuencia_muestreo": 16000,

@@ -22,7 +22,7 @@ sys.path.insert(0, str(RAIZ / "src"))
 
 from gestos_features import LectorGestos  # noqa: E402
 from modelo import ClasificadorPalabras  # noqa: E402
-from predecir import iniciar_tts, hablar  # noqa: E402
+from predecir import archivar_si_esquema_cambio, iniciar_tts, hablar  # noqa: E402
 
 CONFIG = json.loads((RAIZ / "config.json").read_text(encoding="utf-8"))
 SIGNIFICADOS = {g["gesto"]: g["significado"] for g in CONFIG["gestos"]}
@@ -32,9 +32,11 @@ DIR_REGISTROS = RAIZ / "registros"
 def registrar(fila: dict) -> None:
     DIR_REGISTROS.mkdir(exist_ok=True)
     archivo = DIR_REGISTROS / "predicciones_gestos.csv"
+    campos = ["fecha_hora", "significado_evaluador_ciego", "gesto",
+              "significado", "confianza", "correcta"]
+    archivar_si_esquema_cambio(archivo, campos)
     nuevo = not archivo.exists()
     with archivo.open("a", newline="", encoding="utf-8") as f:
-        campos = ["fecha_hora", "gesto", "significado", "confianza", "correcta"]
         w = csv.DictWriter(f, fieldnames=campos)
         if nuevo:
             w.writeheader()
@@ -70,6 +72,10 @@ def main() -> None:
             print(f"  ⚠️  {error}")
             continue
 
+        significado_ciego = input(
+            "  👁️  Evaluador ciego (sin ver pantalla): ¿qué gesto/significado "
+            "cree que fue? (ENTER si no hay evaluador hoy): ").strip().lower()
+
         inicio = time.perf_counter()
         gesto, confianza = modelo.predecir(secuencia)
         latencia = time.perf_counter() - inicio
@@ -86,6 +92,7 @@ def main() -> None:
         resp = input("  ¿Fue correcto? (s/n/ENTER omite): ").strip().lower()
         registrar({
             "fecha_hora": datetime.now().isoformat(timespec="seconds"),
+            "significado_evaluador_ciego": significado_ciego,
             "gesto": gesto, "significado": significado,
             "confianza": round(confianza, 3),
             "correcta": {"s": "si", "n": "no"}.get(resp, ""),

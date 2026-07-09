@@ -64,12 +64,29 @@ def hablar(motor, texto: str) -> None:
         pass
 
 
+def archivar_si_esquema_cambio(archivo: Path, campos_esperados: list[str]) -> None:
+    """Si el CSV existente tiene un encabezado distinto (esquema viejo), lo
+    archiva con marca de tiempo en vez de romper el archivo con columnas
+    desalineadas — así el cambio de esquema nunca corrompe datos previos."""
+    if not archivo.exists():
+        return
+    with archivo.open(encoding="utf-8") as f:
+        encabezado = f.readline().strip().split(",")
+    if encabezado != campos_esperados:
+        marca = datetime.now().strftime("%Y%m%d_%H%M%S")
+        destino = archivo.with_name(f"{archivo.stem}_previo_{marca}{archivo.suffix}")
+        archivo.rename(destino)
+        print(f"  (esquema de registro actualizado; historial anterior en {destino.name})")
+
+
 def registrar(fila: dict) -> None:
     DIR_REGISTROS.mkdir(parents=True, exist_ok=True)
     archivo = DIR_REGISTROS / "predicciones.csv"
+    campos = ["fecha_hora", "prediccion_evaluador_ciego", "prediccion",
+              "confianza", "correcta"]
+    archivar_si_esquema_cambio(archivo, campos)
     nuevo = not archivo.exists()
     with archivo.open("a", newline="", encoding="utf-8") as f:
-        campos = ["fecha_hora", "prediccion", "confianza", "correcta"]
         escritor = csv.DictWriter(f, fieldnames=campos)
         if nuevo:
             escritor.writeheader()
@@ -116,6 +133,10 @@ def main() -> None:
             print("  (silencio — no se detectó voz)")
             continue
 
+        prediccion_ciego = input(
+            "  👁️  Evaluador ciego (sin ver pantalla): ¿qué palabra cree que "
+            "dijo? (ENTER si no hay evaluador hoy): ").strip().lower()
+
         inicio = time.perf_counter()
         secuencia = extraer_mfcc(audio, SR, n_mfcc=CONFIG["audio"]["n_mfcc"])
         palabra, confianza = modelo.predecir(secuencia)
@@ -134,6 +155,7 @@ def main() -> None:
         correcta = {"s": "si", "n": "no"}.get(respuesta, "")
         registrar({
             "fecha_hora": datetime.now().isoformat(timespec="seconds"),
+            "prediccion_evaluador_ciego": prediccion_ciego,
             "prediccion": palabra,
             "confianza": round(confianza, 3),
             "correcta": correcta,

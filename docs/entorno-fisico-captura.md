@@ -112,14 +112,42 @@ hardware 3D dedicado.
 
 ## 4. Checklist de la "ficha de sesión" (antes de grabar)
 
+Ejecutar `python src/ficha_sesion.py` al inicio de cada sesión — convierte
+este checklist en un registro real con fecha y hora
+(`registros/fichas_sesion.csv`), en vez de una lista de papel:
+
 - [ ] Micrófono en posición fija (audífonos puestos o boom ajustado)
 - [ ] Ventilador/TV apagados
 - [ ] Fondo liso detrás de YP, sin gente ni movimiento
 - [ ] Luz de frente, no a contraluz
 - [ ] Silla y cámara en las marcas de cinta del piso
+- [ ] **Evaluador ciego presente** — persona que confirma qué dijo/hizo YP
+      sin ver la pantalla, *antes* de que el sistema revele su predicción.
+      Elimina el sesgo de confirmación en la validación en vivo
+      (`predecir.py`, `gestos_predecir.py` y `multimodal_predecir.py` ya
+      preguntan por su respuesta automáticamente).
 - [ ] (Opcional) celular lateral grabando, listo para el "3-2-1"
-- [ ] Anotar en `registros/sesiones.csv`: hora, quién está presente, cómo
-      se ve el ánimo de YP ese día
+- [ ] Anotar en la ficha: hora, quién está presente, cómo se ve el ánimo
+      de YP ese día
+
+## 4.1 Descubrimiento de gesto personalizado (nuevo, 2026-07-09)
+
+En vez de forzar los 3 gestos genéricos actuales, se busca un 4° gesto que
+sea **natural y consistente específicamente para YP** (no inventado por
+nosotros). Proceso para hoy:
+
+1. Durante la sesión, el acompañante observa 2-3 movimientos que YP repita
+   de forma parecida sin que se le pida un gesto "de manual" (un giro de
+   hombro, un parpadeo marcado, una inclinación de cabeza distinta a la ya
+   usada para "no", etc.).
+2. Anotar en la ficha de sesión (campo "notas") cuál parece más consistente.
+3. Una vez identificado, agregarlo a `config.json` → `gestos` con su
+   propio nombre/descripción, y grabar sus 10 muestras con
+   `python src/gestos_grabar.py <nombre_del_gesto>`.
+
+No agregar el gesto a `config.json` hasta confirmarlo con 2-3 repeticiones
+consistentes observadas — evita gastar una sesión de grabación completa en
+un movimiento que resulte no ser repetible.
 
 ## 5. Por qué esto importa para la sustentación
 

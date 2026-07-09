@@ -31,7 +31,7 @@ sys.path.insert(0, str(RAIZ / "src"))
 from audio_features import extraer_mfcc  # noqa: E402
 from gestos_features import LectorGestos  # noqa: E402
 from modelo import ClasificadorPalabras  # noqa: E402
-from predecir import hablar, iniciar_tts  # noqa: E402
+from predecir import archivar_si_esquema_cambio, hablar, iniciar_tts  # noqa: E402
 
 CONFIG = json.loads((RAIZ / "config.json").read_text(encoding="utf-8"))
 SR = CONFIG["audio"]["frecuencia_muestreo"]
@@ -45,11 +45,12 @@ DIR_REGISTROS = RAIZ / "registros"
 def registrar(fila: dict) -> None:
     DIR_REGISTROS.mkdir(exist_ok=True)
     archivo = DIR_REGISTROS / "predicciones_multimodal.csv"
+    campos = ["fecha_hora", "prediccion_evaluador_ciego", "modo",
+              "prediccion_voz", "confianza_voz", "prediccion_gesto",
+              "confianza_gesto", "resultado_fusion", "correcta"]
+    archivar_si_esquema_cambio(archivo, campos)
     nuevo = not archivo.exists()
     with archivo.open("a", newline="", encoding="utf-8") as f:
-        campos = ["fecha_hora", "modo", "prediccion_voz", "confianza_voz",
-                  "prediccion_gesto", "confianza_gesto", "resultado_fusion",
-                  "correcta"]
         w = csv.DictWriter(f, fieldnames=campos)
         if nuevo:
             w.writeheader()
@@ -97,6 +98,11 @@ def main() -> None:
         if float(np.sqrt(np.mean(audio ** 2))) < 1e-4:
             print("  (silencio — no se detectó voz)")
             continue
+
+        prediccion_ciego = input(
+            "  👁️  Evaluador ciego (sin ver pantalla): ¿qué cree que "
+            "dijo/hizo? (ENTER si no hay evaluador hoy): ").strip().lower()
+
         secuencia_voz = extraer_mfcc(audio, SR, n_mfcc=CONFIG["audio"]["n_mfcc"])
         palabra_voz, conf_voz = modelo_voz.predecir(secuencia_voz)
         latencia = time.perf_counter() - inicio
@@ -131,6 +137,7 @@ def main() -> None:
         resp = input("  ¿Fue correcto? (s/n/ENTER omite): ").strip().lower()
         registrar({
             "fecha_hora": datetime.now().isoformat(timespec="seconds"),
+            "prediccion_evaluador_ciego": prediccion_ciego,
             "modo": modo,
             "prediccion_voz": palabra_voz, "confianza_voz": round(conf_voz, 3),
             "prediccion_gesto": GESTO_A_SIGNIFICADO.get(gesto, gesto),
