@@ -36,7 +36,8 @@ interferencia cognitivo-motora en fusión multimodal"*
 
 ## Autores
 
-[PENDIENTE] — autor principal + asesor/docente institucional como
+Wilmer José Pérez Orozco (Corporación Universidad de la Costa, CUC) —
+autor principal. **[PENDIENTE]** asesor/docente institucional como
 coautor (fortalece la credibilidad, no la resta).
 
 ## Resumen estructurado (máx. 250 palabras)
@@ -304,8 +305,13 @@ destino (APA o Vancouver).
 1. **[CRÍTICO]** Ejecutar la prueba de línea base humana (3-5 oyentes
    externos, protocolo ya definido en `protocolo-validacion.md` §4) y
    aplicar la prueba de McNemar o Wilcoxon correspondiente.
-2. Obtener aval del comité de ética institucional
-   (`Protocolo_Investigacion_MVP_Voz_Gestos.docx`).
+2. Obtener aval del Comité de Ética, Bioética e Integridad Científica
+   Institucional de la CUC (Acuerdo 1231/2018). Radicar
+   `Protocolo_Investigacion_MVP_Voz_Gestos.docx` por correo institucional
+   antes del **4 de agosto de 2026** para entrar a la sesión ordinaria del
+   **25 de agosto de 2026** (último martes del mes; verificar festivos con
+   la Secretaría Jurídica). Falta adjuntar: hoja de vida del investigador
+   principal (ver checklist §9.4 del protocolo).
 3. ~~Definir si se busca caracterización clínica formal~~ — **RESUELTO
    2026-07-08**: existe certificación oficial de discapacidad y registro
    clínico; se mantiene en anexo confidencial (`docs/CONFIDENCIAL-caracterizacion-clinica.md`,
