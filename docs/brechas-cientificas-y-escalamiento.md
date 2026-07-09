@@ -183,18 +183,38 @@ exige latencia <3s (`protocolo-validacion.md`); ya con el dataset actual de
 YP (103 muestras) estamos en el límite (3.28s), y agregar más
 participantes o vocabulario sin cambiar de estrategia rompe el criterio.
 
-**Solución profesional (obligatoria antes de sumar más participantes):**
-1. **Prototipos por clase**: en vez de comparar contra las 10-15 muestras
-   crudas de cada palabra, seleccionar o promediar 3-4 "representantes"
-   por clase (vía clustering) — reduce el banco de referencias 3-4x sin
-   perder precisión significativa (técnica estándar en k-NN de
-   producción).
-2. **Poda por participante**: cada modelo personal (uno por participante)
-   se ejecuta de forma aislada — el sistema de YP nunca compara contra las
-   referencias de otro participante, así que el crecimiento real es solo
-   por vocabulario, no por número de personas en el proyecto.
-3. Relevante directamente para viabilidad en Raspberry Pi (con menos
-   cómputo que esta PC, el límite de 3s se alcanza antes).
+**Actualización 2026-07-09 — RESUELTO parcialmente, con evidencia real
+(ver `reportes/hallazgo_optimizacion_dtw_20260709.md`):**
+
+Se probaron las dos soluciones propuestas y se compararon con datos reales
+(150 muestras, 11 palabras):
+
+1. **Prototipos por clase (k-medoids)**: funciona, pero **siempre cuesta
+   exactitud** — el mejor equilibrio (k=6/clase) da 66 referencias, corta
+   el tiempo a la mitad, pero pierde 2 puntos porcentuales (74.7% vs
+   76.7%). Queda implementado en `src/prototipos.py` y validado en
+   `src/comparar_prototipos.py`, listo para usar si hace falta más
+   adelante.
+2. **Optimizar la función DTW (implementado, preferido):** el cuello de
+   botella real no era *cuántas* referencias se comparan, sino que
+   `distancia_dtw()` llamaba `np.linalg.norm()` celda por celda dentro del
+   bucle. Se vectorizó el cálculo de distancias con `numpy` (broadcasting
+   + `einsum`), verificado matemáticamente idéntico (diferencia 8.88×10⁻¹⁶)
+   contra la versión anterior. Resultado real: **4.2x más rápido por
+   comparación DTW**, LOOCV completa de 150 muestras bajó de ~9-10 min a
+   **4 min**, con la **misma exactitud exacta** (76.7%) — a diferencia de
+   los prototipos, esta ruta no sacrifica nada.
+
+**Nuevo tope de escalabilidad** (con el DTW optimizado): sube de
+~150-170 muestras a **~350-400 muestras** antes de volver a necesitar
+intervención. Si el dataset sigue creciendo más allá de eso, combinar con
+prototipos por clase (ya implementados y validados) es el siguiente paso.
+
+**Poda por participante** (sigue vigente, sin cambios): cada modelo
+personal se ejecuta de forma aislada — el sistema de YP nunca compara
+contra las referencias de otro participante, así que el crecimiento real
+es solo por vocabulario de una persona, no por número de personas en el
+proyecto.
 
 ---
 
