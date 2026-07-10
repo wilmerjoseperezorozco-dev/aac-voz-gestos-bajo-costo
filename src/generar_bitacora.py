@@ -144,6 +144,13 @@ def hoja_descartes(wb: Workbook) -> None:
     escribir_hoja(wb, "Descartes", columnas, leer_csv(DIR_REGISTROS / "descartes.csv"))
 
 
+def hoja_tablero_nucleo(wb: Workbook) -> None:
+    columnas = ["fecha_hora", "simbolos_seleccionados", "contexto",
+                "oracion_generada", "confirmada"]
+    escribir_hoja(wb, "Tablero nucleo (Capa 1+2)", columnas,
+                  leer_csv(DIR_REGISTROS / "predicciones_tablero.csv"))
+
+
 def hoja_validaciones(wb: Workbook) -> None:
     columnas = ["fecha_hora", "canal", "n_muestras", "n_clases",
                 "exactitud_global_pct", "archivo"]
@@ -173,9 +180,6 @@ def hoja_resumen(wb: Workbook) -> None:
     hoja["A2"] = "Generada automáticamente a partir de registros/ y reportes/ — volver a correr src/generar_bitacora.py tras cada sesión."
     hoja["A2"].font = Font(name=FUENTE, italic=True, size=10, color="595959")
 
-    filas = [
-        ("Total fichas de sesión registradas", "='Fichas de sesion'!A1"),  # placeholder, se ajusta abajo
-    ]
     etiquetas_formulas = [
         ("Total fichas de sesión", "=COUNTA('Fichas de sesion'!A:A)-1"),
         ("Total grabaciones (voz+gesto+multimodal)", "=COUNTA('Sesiones de grabacion'!A:A)-1"),
@@ -183,6 +187,8 @@ def hoja_resumen(wb: Workbook) -> None:
         ("  — confirmados correctos (voz)", '=COUNTIF(\'Predicciones voz\'!F:F,"si")'),
         ("  — confirmados incorrectos (voz)", '=COUNTIF(\'Predicciones voz\'!F:F,"no")'),
         ("Total intentos gestos/multimodal", "=COUNTA('Predicciones gestos-multimodal'!A:A)-1"),
+        ("Total intentos tablero núcleo (Capa 1+2)", "=COUNTA('Tablero nucleo (Capa 1+2)'!A:A)-1"),
+        ("  — oraciones confirmadas correctas", '=COUNTIF(\'Tablero nucleo (Capa 1+2)\'!E:E,"si")'),
         ("Total muestras descartadas", "=COUNTA(Descartes!A:A)-1"),
         ("Total entrenamientos (LOOCV) registrados", "=COUNTA('Validaciones LOOCV'!A:A)-1"),
     ]
@@ -205,6 +211,7 @@ def main() -> None:
     hoja_sesiones_grabacion(wb)
     hoja_predicciones_voz(wb)
     hoja_predicciones_gestos(wb)
+    hoja_tablero_nucleo(wb)
     hoja_descartes(wb)
     hoja_validaciones(wb)
     hoja_resumen(wb)  # al final para que el Resumen quede como primera hoja (index 0)
