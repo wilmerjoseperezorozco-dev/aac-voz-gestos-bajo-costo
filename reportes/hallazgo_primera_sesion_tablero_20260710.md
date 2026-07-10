@@ -135,6 +135,47 @@ conectores gramaticales naturales ("quiero", "voy") incluso sin haber
 sido seleccionados, y marcarlos producía falsos positivos en oraciones
 correctas.
 
+## Verificación de locutor único en el corpus de entrenamiento
+
+Ante la pregunta de si el corpus de voz (`data/`) pudiera contener una
+segunda persona (por ejemplo, el investigador asistiendo verbalmente a
+YP durante una grabación), se realizó una verificación acústica de las
+179 grabaciones: estimación de la frecuencia fundamental (F0/tono) por
+archivo, comparada dentro de cada palabra. Las medianas de F0 por palabra
+se agrupan entre 190-234 Hz, consistente con una sola voz femenina adulta
+(el rango típico de una voz masculina adulta, 85-180 Hz, habría aparecido
+como un grupo claramente separado). Los 6 archivos con mayor desviación
+estadística siguen dentro del rango femenino adulto; el más marcado
+corresponde a un archivo ya excluido del entrenamiento por el hallazgo de
+interferencia multimodal del 8 de julio. Limitación reconocida del
+método: un estimador de F0 por autocorrelación no puede distinguir entre
+dos personas del mismo rango vocal.
+
+## Clasificador de calidad entrenado con datos reales — diagnóstico preliminar
+
+Se construyó `src/clasificador_calidad_oracion.py`: regresión logística
+simple (numpy puro, sin dependencias de ML pesadas, consistente con el
+resto del proyecto) sobre 4 características extraídas de cada intento
+(cobertura de conceptos verificables, alucinación detectada, número de
+símbolos, longitud de la oración), entrenada directamente con las
+confirmaciones reales de YP en vez de reglas escritas a mano.
+
+Evaluado con LOOCV (mismo estándar usado en `modelo.py` para datasets
+pequeños) sobre los 25 ejemplos etiquetados de hoy: **84.0% de exactitud**
+— más alto que el 68% de la salvaguarda basada en reglas. Se reporta
+explícitamente como resultado **diagnóstico, no de producción**: con solo
+25 ejemplos (frente a un umbral recomendado de 100+), esta cifra mide qué
+tan separables son las clases con las características actuales, no una
+estimación confiable del desempeño real. El script está listo para
+re-evaluarse automáticamente a medida que se acumulen más sesiones reales
+con el tablero.
+
+**Ruta planeada:** (1) seguir acumulando datos reales de uso hasta superar
+el umbral mínimo, (2) explorar similitud semántica por embeddings para
+generalizar más allá de las 4 características actuales, (3) explorar
+generación restringida por gramática (GBNF) como capa adicional que
+prevenga la alucinación desde el origen en vez de detectarla después.
+
 ## Hallazgo nuevo: alucinación de contenido no seleccionado
 
 Dos intentos muestran al generador introduciendo información que YP no
