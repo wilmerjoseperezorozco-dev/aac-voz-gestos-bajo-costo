@@ -45,7 +45,7 @@ from predecir import archivar_si_esquema_cambio, hablar, iniciar_tts  # noqa: E4
 DIR_REGISTROS = RAIZ / "registros"
 MIN_SIMBOLOS = 2
 MAX_SIMBOLOS = 5
-INTERVALO_TECLADO_MS = 1800
+INTERVALO_TECLADO_MS = 2800  # subido de 1800 tras la sesión 2026-07-10: YP necesitó más tiempo de reacción
 UMBRAL_CONFIANZA_VOZ = 0.99  # mismo criterio que predecir.py: consenso unánime
 
 
@@ -74,14 +74,58 @@ class TableroEscaneo:
 
         self.root.title("Tablero núcleo — MVP comunicación YP")
         self.root.geometry("900x600")
+        self.root.minsize(700, 400)
 
         self.etiqueta_estado = tk.Label(
             root, text="Presiona INICIAR para comenzar el escaneo",
             font=("Segoe UI", 14, "bold"))
-        self.etiqueta_estado.pack(pady=8)
+        self.etiqueta_estado.pack(side="top", pady=8)
 
-        self.marco_grid = tk.Frame(root)
-        self.marco_grid.pack(pady=10)
+        # Botones, semilla y modo van FIJOS abajo (nunca se ocultan por
+        # falta de espacio) -- se empacan primero, en orden de abajo hacia
+        # arriba, para reservar su lugar antes de que el canvas tome el
+        # espacio restante.
+        self.etiqueta_modo = tk.Label(
+            root, text=f"Modo de confirmación: {'VOZ (experimental)' if modo_voz else 'TECLADO (barra espaciadora)'}",
+            font=("Segoe UI", 10), fg="#595959")
+        self.etiqueta_modo.pack(side="bottom", pady=4)
+
+        marco_botones = tk.Frame(root)
+        marco_botones.pack(side="bottom", pady=6)
+        tk.Button(marco_botones, text="INICIAR ESCANEO", command=self.iniciar,
+                  font=("Segoe UI", 12), bg="#1F4E79", fg="white").pack(side="left", padx=6)
+        tk.Button(marco_botones, text="GENERAR ORACIÓN (con lo seleccionado)",
+                  command=self.generar, font=("Segoe UI", 12),
+                  bg="#2E7D32", fg="white").pack(side="left", padx=6)
+        tk.Button(marco_botones, text="REINICIAR", command=self.reiniciar,
+                  font=("Segoe UI", 12)).pack(side="left", padx=6)
+
+        self.etiqueta_semilla = tk.Label(
+            root, text="Seleccionados: (ninguno)", font=("Segoe UI", 13))
+        self.etiqueta_semilla.pack(side="bottom", pady=6)
+
+        # Grid de símbolos DESPLAZABLE: si la pantalla no alcanza para las
+        # 5 filas, se puede hacer scroll sin tapar los botones de abajo.
+        marco_scroll = tk.Frame(root)
+        marco_scroll.pack(side="top", fill="both", expand=True, padx=8)
+        canvas = tk.Canvas(marco_scroll, highlightthickness=0)
+        barra = tk.Scrollbar(marco_scroll, orient="vertical", command=canvas.yview)
+        canvas.configure(yscrollcommand=barra.set)
+        barra.pack(side="right", fill="y")
+        canvas.pack(side="left", fill="both", expand=True)
+
+        self.marco_grid = tk.Frame(canvas)
+        ventana_grid = canvas.create_window((0, 0), window=self.marco_grid, anchor="n")
+
+        def _actualizar_scrollregion(_evento=None) -> None:
+            canvas.configure(scrollregion=canvas.bbox("all"))
+            canvas.coords(ventana_grid, canvas.winfo_width() / 2, 0)
+
+        self.marco_grid.bind("<Configure>", _actualizar_scrollregion)
+        canvas.bind("<Configure>", _actualizar_scrollregion)
+        canvas.bind_all("<MouseWheel>",
+                         lambda e: canvas.yview_scroll(-1 * (e.delta // 120), "units"))
+
         self.celdas: list[tk.Label] = []
         columnas = 5
         for i, simbolo in enumerate(self.simbolos):
@@ -91,25 +135,6 @@ class TableroEscaneo:
                              bg="white")
             celda.grid(row=i // columnas, column=i % columnas, padx=4, pady=4)
             self.celdas.append(celda)
-
-        self.etiqueta_semilla = tk.Label(
-            root, text="Seleccionados: (ninguno)", font=("Segoe UI", 13))
-        self.etiqueta_semilla.pack(pady=6)
-
-        marco_botones = tk.Frame(root)
-        marco_botones.pack(pady=6)
-        tk.Button(marco_botones, text="INICIAR ESCANEO", command=self.iniciar,
-                  font=("Segoe UI", 12), bg="#1F4E79", fg="white").pack(side="left", padx=6)
-        tk.Button(marco_botones, text="GENERAR ORACIÓN (con lo seleccionado)",
-                  command=self.generar, font=("Segoe UI", 12),
-                  bg="#2E7D32", fg="white").pack(side="left", padx=6)
-        tk.Button(marco_botones, text="REINICIAR", command=self.reiniciar,
-                  font=("Segoe UI", 12)).pack(side="left", padx=6)
-
-        self.etiqueta_modo = tk.Label(
-            root, text=f"Modo de confirmación: {'VOZ (experimental)' if modo_voz else 'TECLADO (barra espaciadora)'}",
-            font=("Segoe UI", 10), fg="#595959")
-        self.etiqueta_modo.pack(pady=4)
 
         self.root.bind("<space>", self._confirmar_teclado)
 
@@ -252,9 +277,29 @@ class TableroEscaneo:
 
 
 def main() -> None:
+    if sys.platform == "win32":
+        import ctypes
+        try:
+            ctypes.windll.shcore.SetProcessDpiAwareness(1)
+        except (AttributeError, OSError):
+            pass
+
     modo_voz = "--voz" in sys.argv
     root = tk.Tk()
     TableroEscaneo(root, modo_voz=modo_voz)
+    root.update_idletasks()
+    ancho = root.winfo_screenwidth()
+    alto = root.winfo_screenheight()
+    root.geometry(f"{ancho}x{alto - 70}+0+0")
+    if sys.platform == "win32":
+        try:
+            root.state("zoomed")
+        except tk.TclError:
+            pass
+    root.lift()
+    root.attributes("-topmost", True)
+    root.after(200, lambda: root.attributes("-topmost", False))
+    root.focus_force()
     root.mainloop()
 
 
