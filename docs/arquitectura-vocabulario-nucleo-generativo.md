@@ -1,7 +1,7 @@
 # Arquitectura de dos capas — vocabulario núcleo + expansión generativa
 
-Propuesta del usuario (2026-07-09), corregida en el diseño de la Capa 1 y
-respaldada con literatura real antes de construir nada.
+Propuesta de arquitectura (2026-07-09), corregida en el diseño de la Capa 1
+y respaldada con literatura real antes de construir nada.
 
 ## Por qué se corrige el diseño original
 
