@@ -8,10 +8,19 @@ por TTS y SIEMPRE debe ser confirmada por YP antes de darse por válida
 reportes/hallazgo_generador_llm_20260709.md: ~20% de margen de error
 real, la confirmación no es opcional).
 
-Dos modos de confirmación de la selección en el tablero:
+Tres formas de seleccionar un símbolo, disponibles simultáneamente:
   - "teclado" (predeterminado, recomendado para la primera prueba):
-    barra espaciadora confirma el símbolo resaltado. Rápido, confiable,
-    sin depender de latencia de reconocimiento de voz.
+    barra espaciadora confirma el símbolo resaltado por el escaneo
+    automático. Rápido, confiable, sin depender de latencia de
+    reconocimiento de voz.
+  - "clic directo": hacer clic con el mouse en cualquier símbolo lo
+    selecciona de inmediato, sin esperar a que el escaneo llegue hasta
+    ahí. Agregado tras la sesión 2026-07-10: el orden fijo del escaneo
+    (fila por fila) no coincide con el orden en que YP piensa la frase
+    — si "baño" está en la primera fila y "yo" varias filas más abajo,
+    esperar el ciclo completo del escaneo para juntarlos es lento y
+    confuso. El clic directo permite construir la selección en cualquier
+    orden, útil también como modo de aprendizaje guiado.
   - "voz" (experimental): reutiliza el modelo de voz ya validado
     (modelo_yp.npz) escuchando "sí" en cada símbolo resaltado. Nota
     honesta: con ~150 referencias la verificación puede tardar 2-3s por
@@ -77,7 +86,7 @@ class TableroEscaneo:
         self.root.minsize(700, 400)
 
         self.etiqueta_estado = tk.Label(
-            root, text="Presiona INICIAR para comenzar el escaneo",
+            root, text="Presiona INICIAR para escanear, o haz clic directo en un símbolo",
             font=("Segoe UI", 14, "bold"))
         self.etiqueta_estado.pack(side="top", pady=8)
 
@@ -132,8 +141,9 @@ class TableroEscaneo:
             texto = f"{simbolo['emoji']}\n{simbolo['palabra']}"
             celda = tk.Label(self.marco_grid, text=texto, font=("Segoe UI", 20),
                              width=8, height=4, relief="ridge", borderwidth=2,
-                             bg="white")
+                             bg="white", cursor="hand2")
             celda.grid(row=i // columnas, column=i % columnas, padx=4, pady=4)
+            celda.bind("<Button-1>", lambda _evento, indice=i: self._seleccionar_por_clic(indice))
             self.celdas.append(celda)
 
         self.root.bind("<space>", self._confirmar_teclado)
@@ -201,13 +211,25 @@ class TableroEscaneo:
         return palabra == "si" and confianza >= UMBRAL_CONFIANZA_VOZ
 
     def _seleccionar_actual(self) -> None:
-        simbolo = self.simbolos[self.indice_resaltado]["palabra"]
+        self._seleccionar_indice(self.indice_resaltado)
+
+    def _seleccionar_por_clic(self, indice: int) -> None:
+        """Selección directa con el mouse: permite armar la oración en el
+        orden en que YP la piensa, sin depender del orden fijo del
+        escaneo (hallazgo 2026-07-10: esperar varios ciclos completos
+        para juntar símbolos distantes en la cuadrícula es lento y
+        confuso). Funciona esté o no activo el escaneo automático."""
+        self.escaneando = False
+        self._seleccionar_indice(indice)
+
+    def _seleccionar_indice(self, indice: int) -> None:
+        simbolo = self.simbolos[indice]["palabra"]
         if len(self.seleccionados) >= MAX_SIMBOLOS:
             return
         self.seleccionados.append(simbolo)
         self.etiqueta_semilla.config(
             text=f"Seleccionados: {' + '.join(self.seleccionados)}")
-        self.celdas[self.indice_resaltado].config(bg="#81C784")
+        self.celdas[indice].config(bg="#81C784")
         if len(self.seleccionados) >= MAX_SIMBOLOS:
             self.escaneando = False
             self.etiqueta_estado.config(
@@ -219,7 +241,7 @@ class TableroEscaneo:
         self.etiqueta_semilla.config(text="Seleccionados: (ninguno)")
         for celda in self.celdas:
             celda.config(bg="white")
-        self.etiqueta_estado.config(text="Presiona INICIAR para comenzar el escaneo")
+        self.etiqueta_estado.config(text="Presiona INICIAR para escanear, o haz clic directo en un símbolo")
 
     def generar(self) -> None:
         self.escaneando = False

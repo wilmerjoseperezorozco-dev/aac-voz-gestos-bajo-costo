@@ -37,6 +37,21 @@ interpretar los resultados con precisión metodológica.
   objetivo central de la Capa 1 queda validado como alcanzable, con
   necesidad de entrenamiento y acompañamiento profesional adicional
   (fonoaudiología) para consolidarlo.
+- **Desajuste entre orden de pensamiento y orden de escaneo:** el
+  escaneo recorre la cuadrícula en un orden fijo (fila por fila). Cuando
+  el símbolo que YP necesita primero está en una fila posterior a otro
+  que necesita después (por ejemplo, pensar "yo" antes que "baño", pero
+  "baño" ocupa la primera fila y "yo" una posterior), debe esperar
+  ciclos completos adicionales del escaneo para alcanzar cada símbolo en
+  el orden deseado — lento y confuso. **Corrección aplicada el mismo
+  día:** se agregó selección directa por clic del mouse en cualquier
+  símbolo, disponible en todo momento independientemente del estado del
+  escaneo automático, que arma la selección en el orden exacto en que se
+  hace clic. Verificado con la secuencia "yo → querer → ir → bano"
+  (símbolos en filas no consecutivas): la selección resultante respetó el
+  orden de clic, no el orden de la cuadrícula. Sirve además como modo de
+  aprendizaje guiado — un acompañante puede construir la secuencia junto
+  a YP sin las limitaciones temporales del escaneo automático.
 
 ## Datos cuantitativos de la sesión
 
@@ -88,22 +103,27 @@ combinaciones fuera del conjunto de prueba original.
 
 ## Implicaciones de diseño
 
-1. **Intervalo de escaneo:** aumentar `INTERVALO_TECLADO_MS` de 1800 ms a
-   un valor mayor (proponer 2500-3000 ms como punto de partida) para la
-   siguiente sesión, y ajustar empíricamente según la respuesta de YP.
-2. **Íconos de pronombres:** revisar los símbolos de "yo" y "tu" — evaluar
-   alternativas más distintivas (por ejemplo, contraste de color o forma
-   más marcado) o posponer su uso hasta consolidar el resto del
-   vocabulario núcleo.
-3. **Confirmación táctil:** explorar un interruptor o botón físico
-   dedicado como entrada alternativa a la barra espaciadora, más
+1. **Intervalo de escaneo — aplicado:** `INTERVALO_TECLADO_MS` subido de
+   1800 a 2800 ms; ajustar empíricamente según la respuesta de YP en la
+   siguiente sesión.
+2. **Selección directa por clic — aplicada:** cada símbolo responde a
+   clic del mouse en cualquier momento, independiente del escaneo
+   automático, permitiendo construir la selección en el orden de
+   pensamiento de YP en vez del orden fijo de la cuadrícula.
+3. **Íconos de pronombres — pendiente:** revisar los símbolos de "yo" y
+   "tu" — evaluar alternativas más distintivas (por ejemplo, contraste de
+   color o forma más marcado) o posponer su uso hasta consolidar el
+   resto del vocabulario núcleo.
+4. **Confirmación táctil — pendiente:** explorar un interruptor o botón
+   físico dedicado como entrada alternativa a la barra espaciadora, más
    accesible para el perfil motor de YP.
-4. **Generador de oraciones:** la tasa de alucinación observada en uso
-   real (selecciones repetidas o combinaciones no anticipadas) es un
-   hallazgo relevante para el artículo y debe documentarse como
-   limitación activa del sistema — la confirmación obligatoria de YP
-   antes de comunicar cualquier oración sigue siendo, con esta evidencia,
-   una salvaguarda no negociable del diseño.
+5. **Generador de oraciones — limitación documentada:** la tasa de
+   alucinación observada en uso real (selecciones repetidas o
+   combinaciones no anticipadas) es un hallazgo relevante para el
+   artículo y debe documentarse como limitación activa del sistema — la
+   confirmación obligatoria de YP antes de comunicar cualquier oración
+   sigue siendo, con esta evidencia, una salvaguarda no negociable del
+   diseño.
 
 ## Próximo paso
 
