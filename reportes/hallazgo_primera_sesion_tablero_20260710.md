@@ -111,6 +111,30 @@ quiero salir" ("cabeza" no seleccionada). Confirma que el hallazgo de
 alucinación no es un caso aislado de la primera ronda sino un
 comportamiento recurrente del generador bajo la configuración actual.
 
+## Corrección aplicada: salvaguarda contra alucinación
+
+Se implementó una verificación posterior a la generación en
+`src/generador_llm.py`: si la oración generada menciona un concepto del
+vocabulario núcleo que no fue seleccionado (ej. "cansada" aparece sin
+haber sido elegida), el sistema descarta la oración y usa un respaldo de
+concatenación simple de los símbolos ("Yo salir." en vez de arriesgar
+contenido inventado) — sacrifica fluidez por exactitud garantizada. No
+detecta alucinaciones con vocabulario totalmente ajeno al núcleo (ej.
+"cabeza", que nunca fue un símbolo del tablero) ni el error de atribución
+de sujeto (ej. "tú tienes dolor" cuando el dolor es de ella) — ambos
+quedan como limitaciones documentadas, distintas en naturaleza al patrón
+de inyección de conceptos que esta salvaguarda sí cubre.
+
+Validada retrospectivamente contra los 25 intentos de hoy con
+confirmación explícita: concuerda con el juicio de YP en 17/25 casos
+(68%) — el resto son, en su mayoría, los dos tipos de error mencionados
+arriba que esta salvaguarda no está diseñada para cubrir. Un ajuste
+importante durante la validación: "querer" e "ir" se excluyeron de la
+lista de conceptos verificables tras confirmar que aparecen como
+conectores gramaticales naturales ("quiero", "voy") incluso sin haber
+sido seleccionados, y marcarlos producía falsos positivos en oraciones
+correctas.
+
 ## Hallazgo nuevo: alucinación de contenido no seleccionado
 
 Dos intentos muestran al generador introduciendo información que YP no

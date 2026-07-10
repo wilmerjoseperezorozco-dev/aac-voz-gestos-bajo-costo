@@ -10,10 +10,46 @@ docs/arquitectura-vocabulario-nucleo-generativo.md.
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parent.parent
 RUTA_MODELO = RAIZ / "modelos" / "llm" / "qwen2.5-1.5b-instruct-q4_k_m.gguf"
+
+# Raíces léxicas que cubren la conjugación/género esperada de cada concepto
+# del vocabulario núcleo -- usado para detectar alucinación (hallazgo
+# 2026-07-10, reportes/hallazgo_primera_sesion_tablero_20260710.md: el
+# generador introduce en la oración conceptos que NO fueron seleccionados,
+# ej. "yo + yo" -> "estoy cansada, quiero descansar"). "yo"/"tu" quedan
+# fuera: son pronombres sin huella léxica fija, se reflejan en la
+# conjugación del verbo, no se pueden verificar por substring. "querer" e
+# "ir" también quedan fuera de la verificación: probado contra los 27
+# intentos reales de hoy, ambos aparecen constantemente como conectores
+# gramaticales naturales ("quiero", "voy") incluso cuando no fueron
+# seleccionados -- marcarlos producía falsos positivos en oraciones
+# correctas (ej. "mal + bano" -> "Me siento mal, quiero ir al baño", una
+# paráfrasis válida, no una alucinación).
+VARIANTES_CONCEPTO: dict[str, list[str]] = {
+    "agua": [r"agua"],
+    "dolor": [r"dol\w*", r"duel\w*"],
+    "bano": [r"bañ\w*"],
+    "ayuda": [r"ayud\w*"],
+    "comer": [r"com(?:e|es|emos|en|ida|iendo|ió)\w*"],  # evita falso match con "comprar"
+    "mama": [r"mam\w*"],
+    "cansada": [r"cansad\w*", r"descans\w*"],
+    "frio": [r"fr[ií]\w*"],
+    "salir": [r"sal\w*"],
+    "mas": [r"\bm[aá]s\b"],
+    "terminar": [r"termin\w*", r"acab\w*"],
+    "bien": [r"\bbien\b"],
+    "mal": [r"\bmal\b"],
+    "papa": [r"pap[aá]\w*"],
+    "casa": [r"casa"],
+    "television": [r"televisi[oó]n", r"\btele\b"],
+    "feliz": [r"feliz", r"content\w*"],
+    "triste": [r"trist\w*"],
+    "gracias": [r"gracias"],
+}
 
 PROMPT_SISTEMA = (
     "Eres un asistente que ayuda a una mujer con desconexión motora del "
@@ -43,6 +79,32 @@ EJEMPLO_USUARIO = "Palabras seleccionadas: dolor + cabeza + mama."
 EJEMPLO_ASISTENTE = "Me duele la cabeza, quiero que venga mamá."
 
 
+def _detectar_alucinacion(simbolos: list[str], oracion: str) -> bool:
+    """True si la oración generada menciona un concepto del vocabulario
+    núcleo que NO fue seleccionado -- señal de que el modelo inventó
+    contenido en vez de expandir fielmente la selección. No detecta
+    alucinaciones con vocabulario totalmente ajeno al núcleo (ej. "cabeza"),
+    solo las que reutilizan otro símbolo del tablero -- el caso observado
+    con más frecuencia en la sesión 2026-07-10."""
+    texto = oracion.lower()
+    seleccionados = set(simbolos)
+    for concepto, variantes in VARIANTES_CONCEPTO.items():
+        if concepto in seleccionados:
+            continue
+        if any(re.search(patron, texto) for patron in variantes):
+            return True
+    return False
+
+
+def _respaldo_plantilla(simbolos: list[str]) -> str:
+    """Concatenación simple y segura de los símbolos seleccionados, usada
+    cuando el generador produce contenido no seleccionado. Sacrifica
+    fluidez por exactitud garantizada -- la confirmación de YP sigue
+    siendo obligatoria de todas formas, pero esta oración nunca inventa
+    una necesidad distinta a la que ella seleccionó."""
+    return " ".join(simbolos).capitalize() + "."
+
+
 class GeneradorOraciones:
     def __init__(self, ruta_modelo: Path = RUTA_MODELO):
         if not ruta_modelo.exists():
@@ -69,7 +131,13 @@ class GeneradorOraciones:
         respuesta = self.modelo.create_chat_completion(
             messages=mensajes, max_tokens=60, temperature=0.4, top_p=0.9)
         texto = respuesta["choices"][0]["message"]["content"].strip()
-        return texto.strip('"').strip("«»")
+        oracion = texto.strip('"').strip("«»")
+
+        if _detectar_alucinacion(simbolos, oracion):
+            print(f"  ⚠️  Alucinación detectada (concepto no seleccionado en "
+                  f"la oración) — usando respaldo seguro en vez de: «{oracion}»")
+            return _respaldo_plantilla(simbolos)
+        return oracion
 
 
 if __name__ == "__main__":
