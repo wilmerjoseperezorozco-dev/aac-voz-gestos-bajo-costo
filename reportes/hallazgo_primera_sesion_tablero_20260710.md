@@ -84,6 +84,33 @@ exponen debilidades no capturadas en la prueba controlada.
 3 intentos confirmados como correctos — favorable frente a la referencia
 de ~1 selección por carácter de un teclado de escaneo letra por letra.
 
+## Segunda ronda — tras el clic directo y el escaneo más lento
+
+Con las dos correcciones aplicadas en el transcurso de la misma sesión
+(intervalo de escaneo a 2.8 s, selección directa por clic), YP continuó
+practicando con entusiasmo. Se registraron 17 intentos adicionales, todos
+con respuesta de confirmación explícita (sin casos sin confirmar):
+
+**Precisión semántica confirmada: 12/17 (70.6%)** — una mejora sustancial
+frente al 37.5% de la primera ronda. Es un resultado preliminar y no
+aísla qué factor (clic directo, mayor familiaridad con los íconos tras la
+práctica, o el intervalo más lento) explica la mejora; lo más probable es
+una combinación de los tres. Queda como pregunta abierta para sesiones
+futuras con un diseño que permita aislar cada variable.
+
+**Métrica SPC actualizada** (15 intentos confirmados como correctos en
+total, sesión completa): 0.70 selecciones por palabra generada, en línea
+con el resultado preliminar y consistente con una reducción real de
+esfuerzo motor frente al deletreo letra por letra.
+
+**El patrón de alucinación persiste** incluso con mejor precisión general
+— ejemplos de la segunda ronda: "yo + television" generó "No puedo ver la
+televisión, necesito que me dé la señal" (invención completa, sin
+relación con la selección); "yo + salir" generó "Me duele la cabeza,
+quiero salir" ("cabeza" no seleccionada). Confirma que el hallazgo de
+alucinación no es un caso aislado de la primera ronda sino un
+comportamiento recurrente del generador bajo la configuración actual.
+
 ## Hallazgo nuevo: alucinación de contenido no seleccionado
 
 Dos intentos muestran al generador introduciendo información que YP no
