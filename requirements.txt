@@ -6,3 +6,5 @@ soundfile>=0.13
 pyttsx3>=2.99
 opencv-python>=4.10
 mediapipe>=0.10.30
+openpyxl>=3.1
+llama-cpp-python>=0.3.33
