@@ -49,6 +49,14 @@ VARIANTES_CONCEPTO: dict[str, list[str]] = {
     "feliz": [r"feliz", r"content\w*"],
     "triste": [r"trist\w*"],
     "gracias": [r"gracias"],
+    "gato": [r"gat\w*"],
+    "perro": [r"perr\w*"],
+    "gallina": [r"gallin\w*"],
+    "culebra": [r"culebr\w*"],
+    "ave": [r"\bave[s]?\b"],
+    "tortuga": [r"tortug\w*"],
+    "manzana": [r"manzan\w*"],
+    "banano": [r"banan\w*", r"pl[aá]tano\w*"],
 }
 
 PROMPT_SISTEMA = (

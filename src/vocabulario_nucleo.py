@@ -49,6 +49,19 @@ VOCABULARIO_NUCLEO = [
     {"palabra": "feliz", "emoji": "😄", "categoria": "emocion", "seleccionable": True},
     {"palabra": "triste", "emoji": "😢", "categoria": "emocion", "seleccionable": True},
     {"palabra": "gracias", "emoji": "🙏", "categoria": "social", "seleccionable": True},
+
+    # Ampliación 2026-07-10 — vocabulario de tema (fringe), personalizado
+    # a la vida diaria de YP en Tubará (animales que menciona en familia,
+    # frutas comunes) en vez de un set genérico. No requiere entrenamiento
+    # de voz/gesto nuevo, igual que el resto de Capa 1.
+    {"palabra": "gato", "emoji": "🐈", "categoria": "animal", "seleccionable": True},
+    {"palabra": "perro", "emoji": "🐕", "categoria": "animal", "seleccionable": True},
+    {"palabra": "gallina", "emoji": "🐔", "categoria": "animal", "seleccionable": True},
+    {"palabra": "culebra", "emoji": "🐍", "categoria": "animal", "seleccionable": True},
+    {"palabra": "ave", "emoji": "🐦", "categoria": "animal", "seleccionable": True},
+    {"palabra": "tortuga", "emoji": "🐢", "categoria": "animal", "seleccionable": True},
+    {"palabra": "manzana", "emoji": "🍎", "categoria": "fruta", "seleccionable": True},
+    {"palabra": "banano", "emoji": "🍌", "categoria": "fruta", "seleccionable": True},
 ]
 
 
