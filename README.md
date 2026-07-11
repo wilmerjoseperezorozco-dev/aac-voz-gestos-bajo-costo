@@ -1,5 +1,7 @@
 # MVP — Predicción de voz para personas con desconexión motora del habla
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21314646.svg)](https://doi.org/10.5281/zenodo.21314646)
+
 > **Aviso:** este es un prototipo de investigación de comunicación
 > aumentativa y alternativa (AAC). **No es un dispositivo médico**, no ha
 > sido evaluado ni registrado ante ninguna autoridad sanitaria (incluida
