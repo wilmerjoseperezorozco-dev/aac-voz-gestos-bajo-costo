@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: "Si usa este software, por favor cítelo usando los siguientes metadatos."
+title: "AAC de bajo costo: reconocimiento personalizado de voz y gestos para comunicación aumentativa en desconexión motora del habla"
+abstract: >
+  Sistema personalizado de bajo costo (k-NN + Dynamic Time Warping sobre
+  MFCC y landmarks de postura corporal con MediaPipe) para comunicación
+  aumentativa y alternativa (AAC), con un módulo de expansión generativa
+  local (LLM) sobre un tablero de escaneo de vocabulario núcleo. Incluye
+  un estudio de caso y un hallazgo original de interferencia
+  cognitivo-motora en fusión multimodal simultánea.
+authors:
+  - family-names: "Pérez Orozco"
+    given-names: "Wilmer José"
+    affiliation: "Corporación Universidad de la Costa (CUC)"
+repository-code: "https://github.com/wilmerjoseperezorozco-dev/aac-voz-gestos-bajo-costo"
+license: MIT
+version: 0.1.0
+date-released: "2026-07-10"
+keywords:
+  - comunicación aumentativa y alternativa
+  - AAC
+  - accesibilidad
+  - reconocimiento de voz
+  - reconocimiento de gestos
+  - k-NN
+  - Dynamic Time Warping
+  - MediaPipe
+  - modelos de lenguaje locales
