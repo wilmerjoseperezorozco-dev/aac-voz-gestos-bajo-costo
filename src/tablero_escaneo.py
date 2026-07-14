@@ -136,13 +136,19 @@ class TableroEscaneo:
                          lambda e: canvas.yview_scroll(-1 * (e.delta // 120), "units"))
 
         self.celdas: list[tk.Label] = []
-        columnas = 5
+        # Layout horizontal (2026-07-14): más columnas y celdas ~30% más
+        # pequeñas que el diseño vertical original, para que los 35
+        # símbolos quepan sin necesidad de scroll -- mejor para tocar y
+        # hacer clic de corrido sin perder de vista todo el tablero.
+        # columnas calculado para acercarse a una cuadrícula cuadrada.
+        import math
+        columnas = max(1, math.ceil(math.sqrt(len(self.simbolos) * 16 / 9)))
         for i, simbolo in enumerate(self.simbolos):
             texto = f"{simbolo['emoji']}\n{simbolo['palabra']}"
-            celda = tk.Label(self.marco_grid, text=texto, font=("Segoe UI", 20),
-                             width=8, height=4, relief="ridge", borderwidth=2,
+            celda = tk.Label(self.marco_grid, text=texto, font=("Segoe UI", 12),
+                             width=8, height=3, relief="ridge", borderwidth=2,
                              bg="white", cursor="hand2")
-            celda.grid(row=i // columnas, column=i % columnas, padx=4, pady=4)
+            celda.grid(row=i // columnas, column=i % columnas, padx=3, pady=3)
             celda.bind("<Button-1>", lambda _evento, indice=i: self._seleccionar_por_clic(indice))
             self.celdas.append(celda)
 
