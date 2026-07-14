@@ -57,6 +57,10 @@ VARIANTES_CONCEPTO: dict[str, list[str]] = {
     "tortuga": [r"tortug\w*"],
     "manzana": [r"manzan\w*"],
     "banano": [r"banan\w*", r"pl[aá]tano\w*"],
+    "dormir": [r"dorm\w*", r"duerm\w*"],
+    "jugar": [r"jug\w*"],
+    "ver": [r"\bveo\b", r"\bves\b", r"\bviendo\b", r"\bvi\b"],
+    "escuchar": [r"escuch\w*", r"\boigo\b"],
 }
 
 PROMPT_SISTEMA = (

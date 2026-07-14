@@ -62,6 +62,13 @@ VOCABULARIO_NUCLEO = [
     {"palabra": "tortuga", "emoji": "🐢", "categoria": "animal", "seleccionable": True},
     {"palabra": "manzana", "emoji": "🍎", "categoria": "fruta", "seleccionable": True},
     {"palabra": "banano", "emoji": "🍌", "categoria": "fruta", "seleccionable": True},
+
+    # Ampliación 2026-07-14 — lote de acciones (verbos núcleo genuinamente
+    # universales en AAC, no requieren personalización como animales/frutas).
+    {"palabra": "dormir", "emoji": "🛌", "categoria": "accion", "seleccionable": True},
+    {"palabra": "jugar", "emoji": "⚽", "categoria": "accion", "seleccionable": True},
+    {"palabra": "ver", "emoji": "👀", "categoria": "accion", "seleccionable": True},
+    {"palabra": "escuchar", "emoji": "👂", "categoria": "accion", "seleccionable": True},
 ]
 
 
