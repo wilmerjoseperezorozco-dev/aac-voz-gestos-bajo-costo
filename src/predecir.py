@@ -55,13 +55,30 @@ def iniciar_tts():
 
 
 def hablar(motor, texto: str) -> None:
-    if motor is None:
-        return
+    """Reproduce el texto en voz. pyttsx3 sobre SAPI5 (Windows) puede
+    volverse inestable al reutilizar el mismo motor durante muchas
+    llamadas seguidas en el mismo proceso -- hallazgo 2026-07-14: a veces
+    el audio simplemente no sonaba y solo quedaba el texto en pantalla,
+    crítico porque YP no lee. Antes esto fallaba en silencio (except:
+    pass); ahora reintenta con un motor recién creado antes de rendirse,
+    y avisa por consola si de verdad no se pudo reproducir."""
+    if motor is not None:
+        try:
+            motor.say(texto)
+            motor.runAndWait()
+            return
+        except Exception as error:
+            print(f"  ⚠️  Falló la voz con el motor actual ({error}), reintentando con uno nuevo...")
+
     try:
-        motor.say(texto)
-        motor.runAndWait()
-    except Exception:
-        pass
+        motor_nuevo = iniciar_tts()
+        if motor_nuevo is None:
+            print("  ⚠️  No hay motor de voz disponible -- solo queda el texto en pantalla.")
+            return
+        motor_nuevo.say(texto)
+        motor_nuevo.runAndWait()
+    except Exception as error:
+        print(f"  ⚠️  No se pudo reproducir el audio ({error}) -- solo queda el texto en pantalla.")
 
 
 def archivar_si_esquema_cambio(archivo: Path, campos_esperados: list[str]) -> None:
