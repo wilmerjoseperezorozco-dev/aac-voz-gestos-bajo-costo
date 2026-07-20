@@ -47,7 +47,7 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
 RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ / "src"))
 
-from vocabulario_nucleo import simbolos_seleccionables  # noqa: E402
+from vocabulario_nucleo import CATEGORIAS, simbolos_por_categoria  # noqa: E402
 from generador_llm import GeneradorOraciones  # noqa: E402
 from predecir import archivar_si_esquema_cambio, hablar, iniciar_tts  # noqa: E402
 
@@ -76,10 +76,17 @@ class TableroEscaneo:
     def __init__(self, root: tk.Tk, modo_voz: bool = False):
         self.root = root
         self.modo_voz = modo_voz
-        self.simbolos = simbolos_seleccionables()
+        self.categoria_actual = CATEGORIAS[0]
+        self.simbolos = simbolos_por_categoria(self.categoria_actual)
         self.indice_resaltado = 0
         self.seleccionados: list[str] = []
         self.escaneando = False
+        # Escaneo de dos niveles (estándar AAC "group-item scanning"):
+        # primero se escanean las categorías; al confirmar una, se escanean
+        # sus símbolos. Necesario desde la ampliación al núcleo universal
+        # completo (~130 símbolos, Soto & Cooper 2021) — un escaneo plano
+        # sobre 130 celdas tomaría >6 min por ciclo a 2.8 s/símbolo.
+        self.fase_escaneo = "categorias"
 
         self.root.title("Tablero núcleo — MVP comunicación YP")
         self.root.geometry("900x600")
@@ -113,8 +120,22 @@ class TableroEscaneo:
             root, text="Seleccionados: (ninguno)", font=("Segoe UI", 13))
         self.etiqueta_semilla.pack(side="bottom", pady=6)
 
-        # Grid de símbolos DESPLAZABLE: si la pantalla no alcanza para las
-        # 5 filas, se puede hacer scroll sin tapar los botones de abajo.
+        # Barra de categorías: una página de símbolos a la vez (Fase 2,
+        # núcleo universal completo). Clic directo en una categoría la
+        # abre; el escaneo automático también las recorre (nivel 1).
+        self.marco_categorias = tk.Frame(root)
+        self.marco_categorias.pack(side="top", pady=(0, 4))
+        self.botones_categoria: dict[str, tk.Button] = {}
+        for nombre in CATEGORIAS:
+            boton = tk.Button(
+                self.marco_categorias, text=nombre, font=("Segoe UI", 10, "bold"),
+                bg="#E8EEF5", cursor="hand2", padx=6, pady=3,
+                command=lambda n=nombre: self._clic_categoria(n))
+            boton.pack(side="left", padx=2)
+            self.botones_categoria[nombre] = boton
+
+        # Grid de la página actual (con scroll de respaldo por si alguna
+        # categoría crece más allá de lo que cabe en pantalla).
         marco_scroll = tk.Frame(root)
         marco_scroll.pack(side="top", fill="both", expand=True, padx=8)
         canvas = tk.Canvas(marco_scroll, highlightthickness=0)
@@ -136,21 +157,7 @@ class TableroEscaneo:
                          lambda e: canvas.yview_scroll(-1 * (e.delta // 120), "units"))
 
         self.celdas: list[tk.Label] = []
-        # Layout horizontal (2026-07-14): más columnas y celdas ~30% más
-        # pequeñas que el diseño vertical original, para que los 35
-        # símbolos quepan sin necesidad de scroll -- mejor para tocar y
-        # hacer clic de corrido sin perder de vista todo el tablero.
-        # columnas calculado para acercarse a una cuadrícula cuadrada.
-        import math
-        columnas = max(1, math.ceil(math.sqrt(len(self.simbolos) * 16 / 9)))
-        for i, simbolo in enumerate(self.simbolos):
-            texto = f"{simbolo['emoji']}\n{simbolo['palabra']}"
-            celda = tk.Label(self.marco_grid, text=texto, font=("Segoe UI", 12),
-                             width=8, height=3, relief="ridge", borderwidth=2,
-                             bg="white", cursor="hand2")
-            celda.grid(row=i // columnas, column=i % columnas, padx=3, pady=3)
-            celda.bind("<Button-1>", lambda _evento, indice=i: self._seleccionar_por_clic(indice))
-            self.celdas.append(celda)
+        self._construir_pagina()
 
         self.root.bind("<space>", self._confirmar_teclado)
 
@@ -161,43 +168,110 @@ class TableroEscaneo:
             from modelo import ClasificadorPalabras
             self.modelo_voz = ClasificadorPalabras.cargar(RAIZ / "modelos" / "modelo_yp")
 
+    def _construir_pagina(self) -> None:
+        """(Re)construye la cuadrícula con los símbolos de la categoría
+        actual y resalta la pestaña activa en la barra de categorías."""
+        import math
+
+        for celda in self.celdas:
+            celda.destroy()
+        self.celdas = []
+        self.simbolos = simbolos_por_categoria(self.categoria_actual)
+
+        columnas = max(1, math.ceil(math.sqrt(max(len(self.simbolos), 1) * 16 / 9)))
+        for i, simbolo in enumerate(self.simbolos):
+            texto = f"{simbolo['emoji']}\n{simbolo['palabra']}"
+            fondo = "#81C784" if simbolo["palabra"] in self.seleccionados else "white"
+            celda = tk.Label(self.marco_grid, text=texto, font=("Segoe UI", 12),
+                             width=9, height=3, relief="ridge", borderwidth=2,
+                             bg=fondo, cursor="hand2")
+            celda.grid(row=i // columnas, column=i % columnas, padx=3, pady=3)
+            celda.bind("<Button-1>", lambda _evento, indice=i: self._seleccionar_por_clic(indice))
+            self.celdas.append(celda)
+
+        for nombre, boton in self.botones_categoria.items():
+            activo = nombre == self.categoria_actual
+            boton.config(bg="#1F4E79" if activo else "#E8EEF5",
+                         fg="white" if activo else "black")
+
+    def _clic_categoria(self, nombre: str) -> None:
+        self.escaneando = False
+        self.categoria_actual = nombre
+        self.indice_resaltado = 0
+        self._construir_pagina()
+
     def iniciar(self) -> None:
         if self.escaneando:
             return
         self.escaneando = True
+        self.fase_escaneo = "categorias"
         self.indice_resaltado = 0
         self.etiqueta_estado.config(
-            text="Escaneando... (barra espaciadora confirma)" if not self.modo_voz
-            else "Escaneando... (di «sí» cuando se resalte tu símbolo)")
+            text="Escaneando categorías... (barra espaciadora elige)" if not self.modo_voz
+            else "Escaneando... (di «sí» cuando se resalte tu opción)")
         self._ciclo_escaneo()
+
+    def _limpiar_resaltados(self) -> None:
+        for i, celda in enumerate(self.celdas):
+            fondo = "#81C784" if self.simbolos[i]["palabra"] in self.seleccionados else "white"
+            celda.config(bg=fondo)
+        for nombre, boton in self.botones_categoria.items():
+            activo = nombre == self.categoria_actual
+            boton.config(bg="#1F4E79" if activo else "#E8EEF5",
+                         fg="white" if activo else "black")
 
     def _ciclo_escaneo(self) -> None:
         if not self.escaneando:
             return
-        for celda in self.celdas:
-            celda.config(bg="white")
-        self.celdas[self.indice_resaltado].config(bg="#FFEB3B")
+        self._limpiar_resaltados()
+        if self.fase_escaneo == "categorias":
+            nombre = CATEGORIAS[self.indice_resaltado % len(CATEGORIAS)]
+            self.botones_categoria[nombre].config(bg="#FFEB3B", fg="black")
+        else:
+            self.celdas[self.indice_resaltado % len(self.simbolos)].config(bg="#FFEB3B")
 
         if self.modo_voz:
             self.root.update()
             confirmado = self._verificar_voz()
             if confirmado:
-                self._seleccionar_actual()
-            self.indice_resaltado = (self.indice_resaltado + 1) % len(self.simbolos)
+                self._confirmar_escaneo()
+            else:
+                self._avanzar_indice()
             self.root.after(200, self._ciclo_escaneo)
         else:
             self.root.after(INTERVALO_TECLADO_MS, self._avanzar_teclado)
 
+    def _avanzar_indice(self) -> None:
+        limite = len(CATEGORIAS) if self.fase_escaneo == "categorias" else len(self.simbolos)
+        self.indice_resaltado = (self.indice_resaltado + 1) % max(limite, 1)
+
     def _avanzar_teclado(self) -> None:
         if not self.escaneando:
             return
-        self.indice_resaltado = (self.indice_resaltado + 1) % len(self.simbolos)
+        self._avanzar_indice()
         self._ciclo_escaneo()
+
+    def _confirmar_escaneo(self) -> None:
+        """Confirmación durante el escaneo: en fase de categorías abre la
+        categoría resaltada y pasa a escanear sus símbolos; en fase de
+        símbolos selecciona el símbolo resaltado."""
+        if self.fase_escaneo == "categorias":
+            self.categoria_actual = CATEGORIAS[self.indice_resaltado % len(CATEGORIAS)]
+            self._construir_pagina()
+            self.fase_escaneo = "simbolos"
+            self.indice_resaltado = 0
+            self.etiqueta_estado.config(
+                text=f"Escaneando {self.categoria_actual}... (barra espaciadora elige; "
+                     "al seleccionar vuelve a categorías)")
+        else:
+            self._seleccionar_actual()
+            self.fase_escaneo = "categorias"
+            self.indice_resaltado = CATEGORIAS.index(self.categoria_actual)
 
     def _confirmar_teclado(self, evento=None) -> None:
         if not self.escaneando or self.modo_voz:
             return
-        self._seleccionar_actual()
+        self._confirmar_escaneo()
 
     def _verificar_voz(self) -> bool:
         """Captura ~1.2s de audio y verifica si coincide con 'sí' al
@@ -217,7 +291,7 @@ class TableroEscaneo:
         return palabra == "si" and confianza >= UMBRAL_CONFIANZA_VOZ
 
     def _seleccionar_actual(self) -> None:
-        self._seleccionar_indice(self.indice_resaltado)
+        self._seleccionar_indice(self.indice_resaltado % max(len(self.simbolos), 1))
 
     def _seleccionar_por_clic(self, indice: int) -> None:
         """Selección directa con el mouse: permite armar la oración en el
@@ -243,10 +317,10 @@ class TableroEscaneo:
 
     def reiniciar(self) -> None:
         self.escaneando = False
+        self.fase_escaneo = "categorias"
         self.seleccionados = []
         self.etiqueta_semilla.config(text="Seleccionados: (ninguno)")
-        for celda in self.celdas:
-            celda.config(bg="white")
+        self._limpiar_resaltados()
         self.etiqueta_estado.config(text="Presiona INICIAR para escanear, o haz clic directo en un símbolo")
 
     def generar(self) -> None:

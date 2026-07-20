@@ -16,7 +16,11 @@
     {"palabra": "mama",   "emoji": "👩", "categoria": "personas"},
     {"palabra": "cansada", "emoji": "😴", "categoria": "necesidad"},
     {"palabra": "frio",    "emoji": "🥶", "categoria": "necesidad"},
-    {"palabra": "salir",   "emoji": "🚪", "categoria": "necesidad"}
+    {"palabra": "salir",   "emoji": "🚪", "categoria": "necesidad"},
+    {"palabra": "dormir",  "emoji": "🛌", "categoria": "necesidad"},
+    {"palabra": "gracias", "emoji": "🙏", "categoria": "social"},
+    {"palabra": "casa",    "emoji": "🏠", "categoria": "lugar"},
+    {"palabra": "jugar",   "emoji": "⚽", "categoria": "accion"}
   ],
   "audio": {
     "frecuencia_muestreo": 16000,
