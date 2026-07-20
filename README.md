@@ -99,3 +99,56 @@ levantar una mano = sí, girar la cabeza = no, ambas manos = ayuda.
 - Los audios de `data/` son datos biométricos sensibles: nunca subirlos a
   repositorios públicos. Al publicar, usar solo `data_demo/` y métricas agregadas.
 - En documentos públicos usar el alias **YP**, nunca el nombre completo.
+
+---
+
+## 🌐 Overview · Resumen
+
+<table>
+<tr>
+<td width="50%">
+
+### 🇬🇧 English
+
+**Low-cost AAC system for motor speech disconnection** — offline, no GPU, no internet required.
+
+**What it solves:** Commercial speech recognizers fail people with dysarthria or apraxia because they are trained on typical voices. This system reverses the challenge: instead of forcing the person to approximate standard speech, it learns *their* unique patterns from as few as 10 recordings per word.
+
+**At maturity:** The person speaks a word (or makes a gesture) → a k-NN + DTW classifier recognizes it in real time → the word appears on screen and is spoken aloud through the local TTS engine. Voice and gesture channels run independently and can be used simultaneously.
+
+**Quick start:**
+```bash
+python src/grabar.py      # record 10 samples per word
+python src/entrenar.py    # train + generate validation report
+python src/predecir.py    # live: speak → text + audio output
+```
+No microphone? Run `python src/demo_sintetico.py` to validate the full pipeline with synthetic data.
+
+**Status:** Phase 1 · Pipeline validated — 91.7 % LOOCV accuracy (8 words, synthetic data). Real sessions with YP pending.
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21314646.svg)](https://doi.org/10.5281/zenodo.21314646)
+
+</td>
+<td width="50%">
+
+### 🇨🇴 Español
+
+**Sistema AAC de bajo costo para desconexión motora del habla** — sin internet, sin GPU, sin hardware especial.
+
+**Qué resuelve:** Los reconocedores comerciales fallan con habla disártrica o apráxica porque entrenan con voces típicas. Este sistema invierte el reto: en lugar de pedirle a la persona que se acerque al habla estándar, aprende *sus* patrones únicos con tan solo 10 grabaciones por palabra.
+
+**En fase madura:** La persona dice una palabra (o hace un gesto) → un clasificador k-NN + DTW la reconoce en tiempo real → la palabra aparece en pantalla y se vocaliza a través del motor TTS local. Los canales de voz y gesto funcionan de forma independiente y pueden usarse en simultáneo.
+
+**Inicio rápido:**
+```bash
+python src/grabar.py      # grabar 10 muestras por palabra
+python src/entrenar.py    # entrenar + generar reporte de validación
+python src/predecir.py    # en vivo: habla → texto + salida de audio
+```
+¿Sin micrófono? Ejecuta `python src/demo_sintetico.py` para validar el pipeline completo con datos sintéticos.
+
+**Estado:** Fase 1 · Pipeline validado — 91,7 % de precisión LOOCV (8 palabras, datos sintéticos). Sesiones reales con YP pendientes.
+
+</td>
+</tr>
+</table>
