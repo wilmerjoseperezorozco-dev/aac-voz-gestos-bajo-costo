@@ -78,6 +78,36 @@ al reporte completo en `reportes/` cuando existe.
   (`reportes/validacion_gestos_20260807_233145.json`,
   `confusion_gestos_20260807_233145.png`).
 
+## 2026-08-21 — Verificación visual de persona detectada (canal de gestos)
+
+- **Problema identificado en sesión real:** el detector de postura
+  (MediaPipe Pose) tomaba como referencia a la primera persona que
+  reportaba, sin indicar en pantalla a quién había detectado. En la
+  práctica, esto obligaba al cuidador/investigador a salir del encuadre
+  de la cámara *antes* de empezar, sin forma de confirmarlo en vivo —
+  riesgo real de grabar por error el movimiento del cuidador en lugar
+  del de la persona usuaria.
+- **Corrección implementada** (`src/gestos_features.py`):
+  - El detector ahora reconoce hasta 2 personas simultáneas
+    (`num_poses=2`) y dibuja el esqueleto de cada una en pantalla con
+    colores distintos — verde para la persona cuyos datos se están
+    grabando, otro color para cualquier persona adicional detectada
+    pero ignorada, con una advertencia visible si hay más de una en
+    cuadro.
+  - Nueva vista previa (`verificar_encuadre()`), ejecutada al inicio de
+    `gestos_grabar.py`: muestra la cámara en vivo con el esqueleto
+    dibujado *antes* de empezar a grabar ninguna muestra real, para que
+    el cuidador confirme el encuadre correcto sin gastar intentos.
+  - Ventana de cámara ampliada de la resolución nativa por defecto a
+    1280x720, con tamaño ajustable.
+- **Por qué esto importa más allá de YP:** este patrón (identificación
+  visual de a quién está siguiendo la cámara, antes y durante la
+  captura) es relevante para cualquier cuidador que use este sistema con
+  otra persona con discapacidad motora — no es una corrección puntual,
+  es una salvaguarda de accesibilidad/seguridad de datos generalizable.
+  Documentado también en `docs/plan-comunidad-open-source-2026.md`
+  (sección de mejoras para personas con discapacidad motora).
+
 ## Próximos hallazgos a documentar
 
 - Resultados de la ampliación de la serie de casos (más allá de YP).

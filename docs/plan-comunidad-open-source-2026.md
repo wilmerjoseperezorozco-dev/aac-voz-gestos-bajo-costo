@@ -80,6 +80,14 @@ Mejoras priorizadas:
 
 ## 5. Mejoras específicas para personas con discapacidad motora
 
+> **Ya resuelto (2026-08-21):** verificación visual de qué persona está
+> siguiendo la cámara en el canal de gestos — esqueleto dibujado en vivo,
+> distinguiendo a la persona usuaria de cualquier cuidador presente en
+> cuadro, con vista previa antes de grabar. Relevante para cualquier
+> cuidador que use el sistema con otra persona, no solo para este caso —
+> ver `RESEARCH_LOG.md` (2026-08-21) para el detalle técnico completo.
+
+
 Más allá de lo ya construido (reconocimiento personalizado, tablero de
 escaneo, expansión de frases), líneas concretas de mejora:
 

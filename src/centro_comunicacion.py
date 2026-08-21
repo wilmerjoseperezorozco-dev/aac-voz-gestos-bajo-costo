@@ -93,31 +93,19 @@ def lanzar(nombre_script: str, boton: tk.Button, texto_original: str, consola: b
 def main() -> None:
     root = tk.Tk()
     root.title("Centro de comunicación — YP")
-    root.geometry("640x520")
+    root.geometry("520x480")
 
-    tk.Label(root, text="Centro de comunicación", font=("Segoe UI", 18, "bold")).pack(pady=(20, 4))
-    tk.Label(root, text="Elige una sección para practicar", font=("Segoe UI", 11),
-             fg="#595959").pack(pady=(0, 20))
+    tk.Label(root, text="Elige una sección", font=("Segoe UI", 16, "bold")).pack(pady=(24, 16))
 
     botones: dict[str, tk.Button] = {}
     for seccion in SECCIONES:
-        marco = tk.Frame(root, relief="ridge", borderwidth=1)
-        marco.pack(fill="x", padx=30, pady=8)
-
         boton = tk.Button(
-            marco, text=seccion["titulo"], font=("Segoe UI", 14, "bold"),
-            bg=seccion["color"], fg="white", anchor="w", padx=16, pady=10)
+            root, text=seccion["titulo"], font=("Segoe UI", 16, "bold"),
+            bg=seccion["color"], fg="white", padx=16, pady=18)
         boton.config(command=lambda s=seccion["script"], b=boton, t=seccion["titulo"], c=seccion["consola"]:
                      lanzar(s, b, t, c))
-        boton.pack(fill="x")
+        boton.pack(fill="x", padx=30, pady=8)
         botones[seccion["script"]] = boton
-
-        tk.Label(marco, text=seccion["subtitulo"], font=("Segoe UI", 10),
-                 fg="#595959", anchor="w", padx=16).pack(fill="x", pady=(0, 6))
-
-    tk.Label(root, text="Cada sección se abre en su propia ventana — ciérrala antes\n"
-                         "de volver a presionar el mismo botón.",
-             font=("Segoe UI", 9), fg="#8A8A8A", justify="center").pack(pady=16)
 
     def revisar_procesos_cerrados() -> None:
         for seccion in SECCIONES:

@@ -57,6 +57,10 @@ def main() -> None:
     print(f"  Objetivo: {objetivo} muestras por gesto")
     print("  YP frente a la cámara, buena luz, torso visible.")
     print("=" * 60)
+    print("\n  Verificando encuadre — se abre la cámara para comprobar a")
+    print("  quién detecta (verde = la que se va a grabar). Pulsa una")
+    print("  tecla en la ventana de la cámara cuando el encuadre esté bien.")
+    lector.verificar_encuadre()
 
     filas = []
     for item in gestos:
