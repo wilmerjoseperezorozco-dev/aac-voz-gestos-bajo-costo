@@ -1,0 +1,23 @@
+name: Tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # Solo las dependencias que el test suite realmente necesita (numpy).
+      # No se instala requirements.txt completo (mediapipe, opencv,
+      # llama-cpp-python, sounddevice) porque son pesadas, requieren
+      # hardware de audio/cámara no disponible en CI, y no las usan estos
+      # tests de humo sobre el clasificador.
+      - run: pip install numpy pytest
+      - run: pytest tests/ -v

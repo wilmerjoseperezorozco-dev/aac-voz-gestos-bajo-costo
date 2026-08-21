@@ -1,0 +1,231 @@
+{
+  "exactitud_global": 0.7325581395348837,
+  "total_muestras": 172,
+  "palabras": [
+    "agua",
+    "ayuda",
+    "bano",
+    "cansada",
+    "comer",
+    "dolor",
+    "frio",
+    "mama",
+    "no",
+    "salir",
+    "si"
+  ],
+  "matriz_confusion": [
+    [
+      10,
+      0,
+      0,
+      1,
+      0,
+      2,
+      0,
+      1,
+      2,
+      0,
+      0
+    ],
+    [
+      0,
+      16,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      0,
+      0
+    ],
+    [
+      1,
+      0,
+      10,
+      0,
+      1,
+      0,
+      0,
+      2,
+      1,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      13,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      2
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      13,
+      0,
+      1,
+      1,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      1,
+      0,
+      0,
+      1,
+      11,
+      0,
+      0,
+      4,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      2,
+      0,
+      0,
+      9,
+      0,
+      0,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      1,
+      0,
+      2,
+      1,
+      0,
+      14,
+      0,
+      0,
+      0
+    ],
+    [
+      2,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      0,
+      9,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      13,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      1,
+      2,
+      0,
+      0,
+      0,
+      0,
+      1,
+      8
+    ]
+  ],
+  "por_palabra": {
+    "agua": {
+      "muestras": 16,
+      "aciertos": 10,
+      "exactitud": 0.625
+    },
+    "ayuda": {
+      "muestras": 18,
+      "aciertos": 16,
+      "exactitud": 0.8888888888888888
+    },
+    "bano": {
+      "muestras": 15,
+      "aciertos": 10,
+      "exactitud": 0.6666666666666666
+    },
+    "cansada": {
+      "muestras": 16,
+      "aciertos": 13,
+      "exactitud": 0.8125
+    },
+    "comer": {
+      "muestras": 18,
+      "aciertos": 13,
+      "exactitud": 0.7222222222222222
+    },
+    "dolor": {
+      "muestras": 18,
+      "aciertos": 11,
+      "exactitud": 0.6111111111111112
+    },
+    "frio": {
+      "muestras": 12,
+      "aciertos": 9,
+      "exactitud": 0.75
+    },
+    "mama": {
+      "muestras": 18,
+      "aciertos": 14,
+      "exactitud": 0.7777777777777778
+    },
+    "no": {
+      "muestras": 15,
+      "aciertos": 9,
+      "exactitud": 0.6
+    },
+    "salir": {
+      "muestras": 14,
+      "aciertos": 13,
+      "exactitud": 0.9285714285714286
+    },
+    "si": {
+      "muestras": 12,
+      "aciertos": 8,
+      "exactitud": 0.6666666666666666
+    }
+  },
+  "fecha": "2026-07-30T16:48:25",
+  "config": {
+    "tipo": "knn-dtw",
+    "k_vecinos": 3,
+    "umbral_confianza": 0.99,
+    "frecuencia_muestreo": 16000,
+    "duracion_grabacion_seg": 3.0,
+    "rms_minimo_voz": 0.003,
+    "n_mfcc": 13,
+    "ventana_ms": 25,
+    "salto_ms": 10
+  }
+}

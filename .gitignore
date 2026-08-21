@@ -18,6 +18,12 @@ registros/
 CONFIDENCIAL-*
 *confidencial*
 
+# Archivos temporales de bloqueo de Word/Office (empiezan con ~$) — pueden
+# quedar creados mientras un CONFIDENCIAL-*.docx está abierto y su nombre
+# no calza con el patrón de arriba.
+~$*.docx
+~$*.doc
+
 # Python
 __pycache__/
 *.pyc

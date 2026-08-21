@@ -1,6 +1,9 @@
-# MVP — Predicción de voz para personas con desconexión motora del habla
+# MVP — Comunicación aumentativa de bajo costo para desconexión motora del habla
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21314646.svg)](https://doi.org/10.5281/zenodo.21314646)
+[![Python 3.12](https://img.shields.io/badge/python-3.12-blue)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![TRL 5-6](https://img.shields.io/badge/TRL-5--6-orange)](docs/fase-madurez-software.md)
 
 > **Aviso:** este es un prototipo de investigación de comunicación
 > aumentativa y alternativa (AAC). **No es un dispositivo médico**, no ha
@@ -10,11 +13,30 @@
 > Licencia: MIT (ver [LICENSE](LICENSE)). Repositorio:
 > [github.com/wilmerjoseperezorozco-dev/aac-voz-gestos-bajo-costo](https://github.com/wilmerjoseperezorozco-dev/aac-voz-gestos-bajo-costo).
 
-Sistema mínimo y económico que aprende a reconocer **palabras seleccionadas
-pronunciadas por una persona específica** (participante YP, 38 años,
-desconexión motora del habla) y las convierte en voz sintetizada clara.
-No requiere internet, GPU ni hardware especial: solo esta PC y un micrófono
-casero (audífonos de celular sirven).
+Sistema de comunicación aumentativa de tres capas para una persona con
+desconexión motora del habla (participante YP), construido enteramente
+sobre hardware ya disponible en el hogar — sin internet, sin GPU, sin
+licencias comerciales:
+
+1. **Reconocimiento personalizado de voz y gestos** — aprende los
+   patrones únicos de la persona (voz con k-NN+DTW sobre MFCC, gestos con
+   MediaPipe Pose), no un modelo genérico de habla típica.
+2. **Tablero de selección visual** — 126 símbolos organizados en 10
+   categorías, con escaneo de dos niveles (categoría → símbolo), pensado
+   para cuando la vía directa de voz o gesto no basta.
+3. **Expansión automática de frases** — un modelo de lenguaje local arma
+   oraciones completas a partir de los conceptos seleccionados, con
+   salvaguardas léxicas para no introducir ideas que la persona no eligió.
+
+## 🏆 Posición en el estado del arte
+
+| Aspecto | Sistemas comerciales | Este MVP |
+|---|---|---|
+| Curva de aprendizaje | 500+ frases grabadas (ej. Google Project Relate) | **10 muestras/palabra** |
+| Costo de dispositivo | ~US$6.000+ (dispositivos AAC especializados) | **$0 (tu PC)** |
+| Dependencia de internet | Sí (requiere nube) | **No (100% offline)** |
+| Soporte de idiomas | Limitado (mayormente inglés) | **Español (extensible)** |
+| Datos personales | En servidores del proveedor | **100% locales** |
 
 ## Por qué funciona este enfoque
 
@@ -25,80 +47,133 @@ persona**. Con solo 10 grabaciones por palabra, el clasificador k-NN con
 alineamiento temporal dinámico (DTW) compara cada nueva emisión contra las
 muestras de referencia, tolerando sílabas alargadas o fragmentadas.
 
-## Flujo de uso (3 comandos)
+## Cómo empezar (sin terminal, doble clic)
 
 ```bash
-# 1. Grabar muestras de YP (10 por palabra, sesiones cortas)
-python src/grabar.py
-
-# 2. Entrenar y generar el reporte de validación (métricas + matriz de confusión)
-python src/entrenar.py
-
-# 3. Predicción en vivo: ella habla → el sistema muestra y pronuncia la palabra
-python src/predecir.py
+INICIAR.bat            # abre el menú central con las 4 secciones
+INICIAR_TABLERO.bat    # abre directo el tablero de selección visual
 ```
 
-Prueba sin micrófono (verificación del pipeline / plan B para la demo):
+## Flujo de uso (línea de comandos)
 
 ```bash
-python src/demo_sintetico.py   # genera voces sintéticas y valida el sistema
+# Voz
+py -3.12 src/grabar.py       # grabar muestras de voz
+py -3.12 src/entrenar.py     # entrenar + reporte de validación (LOOCV)
+py -3.12 src/predecir.py     # predicción en vivo: ella habla → texto + audio
+
+# Gestos (webcam)
+py -3.12 src/gestos_grabar.py
+py -3.12 src/gestos_entrenar.py
+py -3.12 src/gestos_predecir.py
+
+# Tablero de selección + expansión de frases
+py -3.12 src/tablero_escaneo.py
 ```
 
-## Canal de gestos (cámara)
-
-Mismo flujo, mismo clasificador k-NN+DTW, pero la señal es el movimiento
-del cuerpo captado por la webcam (MediaPipe Pose, 15 fps verificados):
+Prueba sin micrófono (verificación del pipeline / plan B para demo):
 
 ```bash
-python src/gestos_grabar.py     # graba 10 muestras por gesto (con vista previa)
-python src/gestos_entrenar.py   # entrena + reporte LOOCV en reportes/
-python src/gestos_predecir.py   # gesto en vivo → palabra hablada
+py -3.12 src/demo_sintetico.py
 ```
 
-Gestos iniciales en `config.json` (ajustables a lo que YP pueda hacer):
-levantar una mano = sí, girar la cabeza = no, ambas manos = ayuda.
+Ver la carpeta [`lanzadores/`](lanzadores/) para un `.bat` dedicado a cada
+script, con Python 3.12 fijado explícitamente.
 
 ## Estructura
 
 | Carpeta / archivo | Contenido |
 |---|---|
-| `config.json` | Vocabulario (8 palabras funcionales), parámetros de audio y modelo |
-| `src/audio_features.py` | Extracción MFCC + deltas con recorte de silencio (numpy/scipy puro) |
+| `config.json` | Vocabulario de voz, parámetros de audio y modelo |
+| `src/vocabulario_nucleo.py` | Vocabulario núcleo del tablero (126 símbolos, 10 categorías, base académica Soto & Cooper 2021) |
+| `src/audio_features.py` | Extracción MFCC + deltas con recorte de silencio |
 | `src/modelo.py` | Clasificador k-NN + DTW con validación LOOCV |
-| `src/grabar.py` | Sesión de grabación guiada con registro CSV |
-| `src/entrenar.py` | Entrenamiento + reporte de validación (JSON + PNG) |
-| `src/predecir.py` | Predicción en vivo con voz sintetizada (Microsoft Sabina, es-MX) |
-| `data/` | Grabaciones reales de YP (privadas — **no publicar**) |
+| `src/gestos_features.py` | Extracción de landmarks de postura corporal (MediaPipe) |
+| `src/tablero_escaneo.py` | Tablero de selección visual con escaneo de dos niveles |
+| `src/generador_llm.py` | Expansión de frases con salvaguarda anti-alucinación léxica |
+| `src/centro_comunicacion.py` | Menú central que lanza las 4 secciones (voz, gestos, tablero, multimodal) |
+| `src/grabar.py` / `gestos_grabar.py` / `multimodal_grabar.py` | Sesiones de grabación guiadas |
+| `src/entrenar.py` / `gestos_entrenar.py` | Entrenamiento + reporte de validación (JSON + PNG) |
+| `src/predecir.py` / `gestos_predecir.py` / `multimodal_predecir.py` | Predicción en vivo con voz sintetizada |
+| `data/`, `data_gestos/`, `registros/`, `modelos/` | Datos y modelos reales de YP (privados — **no publicar**, protegidos por `.gitignore`) |
 | `data_demo/` | Audios sintéticos de prueba (publicables) |
-| `modelos/` | Modelo entrenado (`modelo_yp.npz` + `.json`) |
-| `reportes/` | Métricas de validación y matrices de confusión con fecha |
-| `registros/` | Trazabilidad: sesiones de grabación y aciertos en vivo (CSV) |
-| `docs/` | Protocolo de validación y plan ejecutable |
+| `reportes/` | Métricas de validación, matrices de confusión y hallazgos de sesión, con fecha |
+| `docs/` | Metodología, plan de madurez del software y documentación de investigación |
+| `lanzadores/` | Un `.bat` por script, con Python 3.12 fijado |
 
-## Estado de verificación (2026-07-06)
+## Estado actual (2026-08)
 
-- Pipeline completo verificado en esta PC con datos sintéticos:
-  **91.7% de exactitud LOOCV** (48 muestras, 8 palabras).
-- Persistencia del modelo verificada (guardar → cargar → predecir: 4/4).
-- Voz en español disponible: Microsoft Sabina Desktop (es-MX).
+- **Voz**: pipeline validado con datos reales de YP, exactitud LOOCV
+  ~77-80% según la sesión (ver `reportes/`); vocabulario configurable en
+  `config.json` (15 palabras funcionales activas).
+- **Gestos**: canal validado con MediaPipe Pose, exactitud LOOCV ~80% en
+  gestos configurados.
+- **Tablero de selección + expansión de frases**: en uso real desde
+  julio de 2026, con múltiples sesiones documentadas. En la sesión más
+  reciente con datos cuantitativos (2026-07-14): 64.7% de oraciones
+  confirmadas como correctas sobre 17 intentos, con mejor desempeño en
+  selecciones de 2 símbolos (70%) que de 3+ (67% y en descenso) —
+  hallazgo consistente con carga cognitiva creciente, documentado en
+  `reportes/hallazgo_sesion_20260714.md`.
+- **Nivel de madurez**: TRL 5-6 (demostración con usuaria real en entorno
+  relevante) — ver `docs/fase-madurez-software.md` para el detalle y la
+  ruta hacia TRL 7.
+- **Limitaciones conocidas**: estudio de caso único (N=1), vocabulario de
+  voz cerrado, requiere Python 3.12 con dependencias instaladas (ver
+  sección de limitaciones abajo para el detalle completo).
 
-## Consejos para las sesiones con YP
+## Consejos para sesiones de grabación
 
 1. Sesiones de máximo 15 minutos, con pausas — la fatiga degrada las muestras.
 2. Ambiente silencioso y el micrófono siempre a la misma distancia (~15 cm).
 3. Lo que importa es la **consistencia**, no la claridad: si ella dice "agua"
    como "a-ua", perfecto — el sistema aprende SU forma de decirlo.
-4. Usar las tarjetas con imágenes (ella reconoce imágenes) para pedirle cada
-   palabra sin modelarla verbalmente primero.
-5. Registrar observaciones en `registros/sesiones.csv` (columna observaciones).
+4. Usar tarjetas con imágenes para pedir cada palabra sin modelarla
+   verbalmente primero.
+5. Registrar observaciones en `registros/sesiones.csv`.
 
 ## Ética y privacidad
 
-- Consentimiento informado firmado ANTES de la primera grabación
-  (ver `docs/protocolo-validacion.md`).
-- Los audios de `data/` son datos biométricos sensibles: nunca subirlos a
-  repositorios públicos. Al publicar, usar solo `data_demo/` y métricas agregadas.
-- En documentos públicos usar el alias **YP**, nunca el nombre completo.
+- Consentimiento informado firmado antes de cada tipo de grabación,
+  revisado y renovable, con derecho explícito a retirarse y a la
+  eliminación de los datos.
+- Los datos biométricos (`data/`, `data_gestos/`, `modelos/`,
+  `registros/`) son sensibles: nunca se publican, están excluidos del
+  repositorio por `.gitignore`. Al publicar, se usa solo `data_demo/` y
+  métricas agregadas.
+- En documentos públicos se usa siempre el alias **YP**, nunca el nombre
+  real ni datos identificables.
+
+## Comunidad y contribuciones
+
+Este es un proyecto de **código abierto para uso libre, con mantenimiento
+único** — ver [`CONTRIBUTING.md`](CONTRIBUTING.md) para la política
+completa. En resumen: puedes usar y adaptar el código libremente (MIT),
+pero el repositorio oficial no acepta Pull Requests externos; las
+sugerencias van por [Issues](../../issues).
+
+## Limitaciones conocidas y próximos pasos
+
+- Estudio de caso único (N=1) — validación con más participantes en
+  curso, necesaria para generalizar el método.
+- Vocabulario de voz cerrado (15 palabras activas) — el tablero ya cubre
+  126 conceptos, la vía de voz sigue siendo más limitada.
+- Requiere Python 3.12 con dependencias instaladas manualmente; un
+  instalador empaquetado sin terminal está en el roadmap
+  (`docs/plan-comunidad-open-source-2026.md`).
+- Fusión voz+gesto simultánea aún no implementada como modo único
+  (existe captura multimodal, pero la fusión de señales es trabajo
+  futuro).
+- Sin soporte todavía para acceso por switch/pulsador único, relevante
+  para personas con compromiso motor más severo que YP.
+
+Ver `docs/plan-comunidad-open-source-2026.md` para la ruta completa a
+12 meses.
+
+## Citación
+
+Ver [`CITATION.cff`](CITATION.cff). DOI de la versión publicada:
+[10.5281/zenodo.21314646](https://doi.org/10.5281/zenodo.21314646).
 
 ---
 
@@ -110,21 +185,32 @@ levantar una mano = sí, girar la cabeza = no, ambas manos = ayuda.
 
 ### 🇬🇧 English
 
-**Low-cost AAC system for motor speech disconnection** — offline, no GPU, no internet required.
+**Low-cost, three-layer AAC system for motor speech disconnection** —
+offline, no GPU, no internet required. Combines personalized speech and
+gesture recognition, a visual selection board (126 concepts), and
+automatic sentence expansion with lexical safeguards.
 
-**What it solves:** Commercial speech recognizers fail people with dysarthria or apraxia because they are trained on typical voices. This system reverses the challenge: instead of forcing the person to approximate standard speech, it learns *their* unique patterns from as few as 10 recordings per word.
-
-**At maturity:** The person speaks a word (or makes a gesture) → a k-NN + DTW classifier recognizes it in real time → the word appears on screen and is spoken aloud through the local TTS engine. Voice and gesture channels run independently and can be used simultaneously.
+**What it solves:** Commercial speech recognizers fail people with
+dysarthria or apraxia because they are trained on typical voices. This
+system reverses the challenge: instead of forcing the person to
+approximate standard speech, it learns *their* unique patterns from as
+few as 10 recordings per word.
 
 **Quick start:**
 ```bash
-python src/grabar.py      # record 10 samples per word
-python src/entrenar.py    # train + generate validation report
-python src/predecir.py    # live: speak → text + audio output
+py -3.12 src/grabar.py      # record samples per word
+py -3.12 src/entrenar.py    # train + generate validation report
+py -3.12 src/predecir.py    # live: speak → text + audio output
+py -3.12 src/tablero_escaneo.py  # visual selection board
 ```
-No microphone? Run `python src/demo_sintetico.py` to validate the full pipeline with synthetic data.
 
-**Status:** Phase 1 · Pipeline validated — 91.7 % LOOCV accuracy (8 words, synthetic data). Real sessions with YP pending.
+**Status:** TRL 5-6 — real-world demonstration with a single participant
+(YP), multiple documented sessions since July 2026. Single-case study;
+expansion to a multi-case series is the current priority.
+
+**Contributing:** open source for use (MIT license), single-maintainer
+repository — no external Pull Requests accepted, see
+[`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21314646.svg)](https://doi.org/10.5281/zenodo.21314646)
 
@@ -133,21 +219,33 @@ No microphone? Run `python src/demo_sintetico.py` to validate the full pipeline 
 
 ### 🇨🇴 Español
 
-**Sistema AAC de bajo costo para desconexión motora del habla** — sin internet, sin GPU, sin hardware especial.
+**Sistema AAC de tres capas y bajo costo para desconexión motora del
+habla** — sin internet, sin GPU, sin hardware especial. Combina
+reconocimiento personalizado de voz y gestos, un tablero de selección
+visual (126 conceptos) y expansión automática de frases con salvaguardas
+léxicas.
 
-**Qué resuelve:** Los reconocedores comerciales fallan con habla disártrica o apráxica porque entrenan con voces típicas. Este sistema invierte el reto: en lugar de pedirle a la persona que se acerque al habla estándar, aprende *sus* patrones únicos con tan solo 10 grabaciones por palabra.
-
-**En fase madura:** La persona dice una palabra (o hace un gesto) → un clasificador k-NN + DTW la reconoce en tiempo real → la palabra aparece en pantalla y se vocaliza a través del motor TTS local. Los canales de voz y gesto funcionan de forma independiente y pueden usarse en simultáneo.
+**Qué resuelve:** Los reconocedores comerciales fallan con habla
+disártrica o apráxica porque entrenan con voces típicas. Este sistema
+invierte el reto: en lugar de pedirle a la persona que se acerque al
+habla estándar, aprende *sus* patrones únicos con tan solo 10 grabaciones
+por palabra.
 
 **Inicio rápido:**
 ```bash
-python src/grabar.py      # grabar 10 muestras por palabra
-python src/entrenar.py    # entrenar + generar reporte de validación
-python src/predecir.py    # en vivo: habla → texto + salida de audio
+py -3.12 src/grabar.py      # grabar muestras por palabra
+py -3.12 src/entrenar.py    # entrenar + generar reporte de validación
+py -3.12 src/predecir.py    # en vivo: habla → texto + audio
+py -3.12 src/tablero_escaneo.py  # tablero de selección visual
 ```
-¿Sin micrófono? Ejecuta `python src/demo_sintetico.py` para validar el pipeline completo con datos sintéticos.
 
-**Estado:** Fase 1 · Pipeline validado — 91,7 % de precisión LOOCV (8 palabras, datos sintéticos). Sesiones reales con YP pendientes.
+**Estado:** TRL 5-6 — demostración real con una participante (YP),
+múltiples sesiones documentadas desde julio de 2026. Estudio de caso
+único; ampliar a una serie de casos es la prioridad actual.
+
+**Contribuciones:** código abierto para uso (licencia MIT), mantenimiento
+único — no se aceptan Pull Requests externos, ver
+[`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 </td>
 </tr>
