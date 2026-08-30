@@ -4,6 +4,13 @@
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![TRL 5-6](https://img.shields.io/badge/TRL-5--6-orange)](docs/fase-madurez-software.md)
+[![Buscamos alianzas](https://img.shields.io/badge/🤝_Buscamos_alianzas-Fundaciones_en_Barranquilla-brightgreen)](../../issues/2)
+
+> ### 🤝 ¿Tu fundación o institución quiere sumarse?
+> Este proyecto busca aliados en Barranquilla y el Caribe colombiano para
+> ampliar su impacto: más participantes, hardware de bajo costo, y
+> llegar a más familias que necesitan una vía de comunicación accesible.
+> **[Conoce la propuesta y escríbeme →](../../issues/2)**
 
 > **Aviso:** este es un prototipo de investigación de comunicación
 > aumentativa y alternativa (AAC). **No es un dispositivo médico**, no ha
