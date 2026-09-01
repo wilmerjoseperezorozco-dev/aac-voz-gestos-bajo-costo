@@ -1,5 +1,7 @@
 # MVP — Comunicación aumentativa de bajo costo para desconexión motora del habla
 
+[![Tests](https://github.com/wilmerjoseperezorozco-dev/aac-voz-gestos-bajo-costo/actions/workflows/tests.yml/badge.svg)](../../actions/workflows/tests.yml)
+[![Coverage — clasificador core](https://img.shields.io/badge/coverage_(modelo.py)-82%25-brightgreen)](tests/test_modelo.py)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21314646.svg)](https://doi.org/10.5281/zenodo.21314646)
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)

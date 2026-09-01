@@ -28,6 +28,8 @@ CONFIDENCIAL-*
 __pycache__/
 *.pyc
 *.pyo
+.coverage
+.pytest_cache/
 
 # Sistema operativo / editor
 .DS_Store
