@@ -11,6 +11,12 @@
 > ampliar su impacto: más participantes, hardware de bajo costo, y
 > llegar a más familias que necesitan una vía de comunicación accesible.
 > **[Conoce la propuesta y escríbeme →](../../issues/2)**
+>
+> ¿Trabajas con ELA, Parkinson, esclerosis múltiple, secuelas de ACV u
+> otras condiciones con compromiso motor del habla? Hay una búsqueda de
+> alianzas específica por condición, con la ruta de expansión completa:
+> **[Ver condiciones y ruta de expansión →](../../issues/3)** ·
+> [`docs/ruta-expansion-condiciones-neurologicas.md`](docs/ruta-expansion-condiciones-neurologicas.md)
 
 > **Aviso:** este es un prototipo de investigación de comunicación
 > aumentativa y alternativa (AAC). **No es un dispositivo médico**, no ha
