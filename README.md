@@ -57,9 +57,12 @@ muestras de referencia, tolerando sílabas alargadas o fragmentadas.
 ## Cómo empezar (sin terminal, doble clic)
 
 ```bash
-INICIAR.bat            # abre el menú central con las 4 secciones
-INICIAR_TABLERO.bat    # abre directo el tablero de selección visual
+INICIAR.bat   # abre el menú central con las 4 secciones (con consola visible, útil para depurar)
 ```
+
+Para uso diario sin ninguna ventana de consola, crea un acceso directo a
+`src/lanzar_silencioso.py` con `pythonw.exe` (ver comentarios en ese
+archivo) — recomendado para presentaciones o demos.
 
 ## Flujo de uso (línea de comandos)
 
