@@ -99,7 +99,13 @@ escaneo, expansión de frases), líneas concretas de mejora:
 2. **Ajuste de velocidad de escaneo por persona**: la velocidad de
    escaneo del tablero debe ser configurable individualmente, no fija.
 3. **Contraste y tamaño de icono ajustables**: WCAG 2.2 como estándar de
-   referencia (ya recomendado en `fase-madurez-software.md`).
+   referencia (ya recomendado en `fase-madurez-software.md`). **Auditoría
+   de contraste ya realizada (2026-09):** los 7 pares de color usados en
+   `tablero_escaneo.py` (categorías, selección, resaltado de escaneo,
+   botones de confirmar/cancelar, texto secundario) pasan WCAG AA — el
+   más ajustado es el verde de confirmación (`#2E7D32` sobre blanco,
+   5.13:1, mínimo exigido 4.5:1). Pendiente real: el **tamaño** de
+   icono/botón ajustable, que sí falta.
 4. **Confirmación por vía redundante**: si el reconocimiento de voz falla
    por fatiga vocal (común en sesiones largas), poder confirmar por
    gesto o por el tablero sin perder el progreso de la frase.
