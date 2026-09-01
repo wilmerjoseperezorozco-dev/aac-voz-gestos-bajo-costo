@@ -17,6 +17,15 @@
 > alianzas específica por condición, con la ruta de expansión completa:
 > **[Ver condiciones y ruta de expansión →](../../issues/3)** ·
 > [`docs/ruta-expansion-condiciones-neurologicas.md`](docs/ruta-expansion-condiciones-neurologicas.md)
+>
+> 📊 ¿Por qué importa esto a escala? Impacto económico y social con
+> fuentes verificables (OMS, Banco Mundial, DANE) + métricas reales de
+> avance del proyecto:
+> **[`docs/impacto-economico-social-y-metricas.md`](docs/impacto-economico-social-y-metricas.md)**
+
+El proyecto está postulando a la convocatoria Ignacio H. de Larramendi
+2026 de Fundación Mapfre, y se encuentra en proceso de vinculación
+institucional con la Universidad de la Costa (CUC).
 
 > **Aviso:** este es un prototipo de investigación de comunicación
 > aumentativa y alternativa (AAC). **No es un dispositivo médico**, no ha
