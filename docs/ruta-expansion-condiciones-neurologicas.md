@@ -90,9 +90,12 @@ común, evaluada a futuro, no una fusión de los dos sistemas.
 
 ## Qué ofrece el proyecto a quien se sume
 
-- Apoyo logístico ya presupuestado para la participación de nuevos
-  casos (desplazamiento, tiempo de sesiones) — no es una promesa a
-  futuro, ya hay recursos asignados para esta etapa de expansión.
+- Apoyo logístico con presupuesto ya diseñado para la participación de
+  nuevos casos (desplazamiento, tiempo de sesiones) — el proyecto
+  cuenta con un plan de presupuesto detallado para esta etapa de
+  expansión, actualmente sujeto a la resolución de una convocatoria de
+  financiación en curso; se confirma con cada aliado antes de
+  comprometer fechas concretas.
 - Coautoría y participación en las publicaciones científicas que
   resulten del trabajo conjunto, con reconocimiento explícito de la
   contribución de cada aliado.
