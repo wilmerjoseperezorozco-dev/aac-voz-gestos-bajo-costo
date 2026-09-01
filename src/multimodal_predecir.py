@@ -22,7 +22,7 @@ from pathlib import Path
 import numpy as np
 import sounddevice as sd
 
-if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
+if sys.stdout is not None and sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 RAIZ = Path(__file__).resolve().parent.parent

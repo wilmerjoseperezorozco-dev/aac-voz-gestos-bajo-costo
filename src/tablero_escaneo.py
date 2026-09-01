@@ -41,7 +41,7 @@ import tkinter as tk
 from datetime import datetime
 from pathlib import Path
 
-if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
+if sys.stdout is not None and sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 RAIZ = Path(__file__).resolve().parent.parent

@@ -236,7 +236,7 @@ class GeneradorOraciones:
 
 if __name__ == "__main__":
     import sys
-    if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
+    if sys.stdout is not None and sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
     print("Cargando modelo local (puede tardar unos segundos)...")
