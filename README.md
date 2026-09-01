@@ -126,26 +126,49 @@ script, con Python 3.12 fijado explícitamente.
 | `docs/` | Metodología, plan de madurez del software y documentación de investigación |
 | `lanzadores/` | Un `.bat` por script, con Python 3.12 fijado |
 
-## Estado actual (2026-08)
+## Estado actual (2026-09)
 
-- **Voz**: pipeline validado con datos reales de YP, exactitud LOOCV
-  ~77-80% según la sesión (ver `reportes/`); vocabulario configurable en
-  `config.json` (15 palabras funcionales activas).
-- **Gestos**: canal validado con MediaPipe Pose, exactitud LOOCV ~80% en
-  gestos configurados.
+- **Voz**: pipeline validado con datos reales de YP. Validación de
+  referencia (n=103 muestras, 8 palabras): **80.6% de exactitud LOOCV,
+  IC95% 71.6%-87.7%** (Clopper-Pearson). El vocabulario y el tamaño de
+  la muestra siguen creciendo — ver `RESEARCH_LOG.md` para la
+  cronología completa de validaciones.
+- **Gestos**: canal validado con MediaPipe Pose. 80.0% de exactitud
+  LOOCV, IC95% 61.4%-92.3% (n=30, 3 gestos).
 - **Tablero de selección + expansión de frases**: en uso real desde
-  julio de 2026, con múltiples sesiones documentadas. En la sesión más
-  reciente con datos cuantitativos (2026-07-14): 64.7% de oraciones
-  confirmadas como correctas sobre 17 intentos, con mejor desempeño en
-  selecciones de 2 símbolos (70%) que de 3+ (67% y en descenso) —
-  hallazgo consistente con carga cognitiva creciente, documentado en
-  `reportes/hallazgo_sesion_20260714.md`.
+  julio de 2026, con múltiples sesiones documentadas y una tasa de
+  oraciones confirmadas correctas cercana al 60% sobre el total de
+  intentos registrados — el detalle sesión por sesión, incluyendo el
+  patrón de mejor desempeño en selecciones cortas, está en
+  `RESEARCH_LOG.md`.
 - **Nivel de madurez**: TRL 5-6 (demostración con usuaria real en entorno
   relevante) — ver `docs/fase-madurez-software.md` para el detalle y la
   ruta hacia TRL 7.
 - **Limitaciones conocidas**: estudio de caso único (N=1), vocabulario de
   voz cerrado, requiere Python 3.12 con dependencias instaladas (ver
   sección de limitaciones abajo para el detalle completo).
+
+## 🔬 Hallazgos científicos
+
+Dos hallazgos metodológicos, con estadística formal, documentados en
+detalle en [`RESEARCH_LOG.md`](RESEARCH_LOG.md):
+
+1. **Interferencia cognitivo-motora en captura simultánea.** Al capturar
+   voz y gesto al mismo tiempo, la exactitud cae de forma
+   estadísticamente significativa (voz: 80.6% → 36.7%, gestos: 80.0% →
+   30.0%; los intervalos de confianza no se traslapan en ningún canal —
+   efecto real, no ruido de muestra pequeña). Este hallazgo motivó
+   rediseñar la arquitectura de captura, de simultánea a secuencial.
+2. **La política de decisión importa tanto como el modelo.** El sistema
+   es confiable cuando alcanza consenso interno entre sus vecinos más
+   cercanos (92.3% de exactitud en vivo con consenso unánime) pero no
+   con consenso parcial (13.0% con consenso mínimo) — la baja exactitud
+   inicial en vivo no era un problema del modelo, sino del umbral de
+   decisión, que se corrigió en consecuencia.
+
+Ver también [`docs/impacto-economico-social-y-metricas.md`](docs/impacto-economico-social-y-metricas.md)
+para el contexto de impacto (OMS, Banco Mundial, DANE) y las métricas
+completas.
 
 ## Consejos para sesiones de grabación
 
@@ -231,6 +254,15 @@ system reverses the challenge: instead of forcing the person to
 approximate standard speech, it learns *their* unique patterns from as
 few as 10 recordings per word.
 
+**State of the art**
+
+| Aspect | Commercial systems | This project |
+|---|---|---|
+| Learning curve | 500+ recorded phrases (e.g. Google Project Relate) | **10 samples/word** |
+| Device cost | ~US$6,000+ (specialized AAC devices) | **$0 (your PC)** |
+| Internet dependency | Yes (cloud-based) | **No — 100% offline** |
+| Personal data | On provider's servers | **100% local** |
+
 **Quick start:**
 ```bash
 py -3.12 src/grabar.py      # record samples per word
@@ -240,8 +272,47 @@ py -3.12 src/tablero_escaneo.py  # visual selection board
 ```
 
 **Status:** TRL 5-6 — real-world demonstration with a single participant
-(YP), multiple documented sessions since July 2026. Single-case study;
-expansion to a multi-case series is the current priority.
+(YP), multiple documented sessions since July 2026. Reference validation
+(n=103 samples, 8 words): **80.6% LOOCV accuracy, 95% CI 71.6%-87.7%**
+(exact Clopper-Pearson interval); gesture channel: 80.0%, 95% CI
+61.4%-92.3% (n=30). Single-case study; expansion to a multi-case series
+is the current priority.
+
+**Scientific findings** (full statistical detail in
+[`RESEARCH_LOG.md`](RESEARCH_LOG.md)):
+1. **Cognitive-motor interference under simultaneous capture.** Capturing
+   voice and gesture at the same time causes a statistically significant
+   accuracy drop (voice: 80.6% → 36.7%; gestures: 80.0% → 30.0%;
+   non-overlapping confidence intervals — a real effect, not small-sample
+   noise). This finding drove a redesign from simultaneous to sequential
+   capture.
+2. **Decision policy matters as much as the model.** The system is
+   reliable when its nearest-neighbor classifier reaches internal
+   consensus (92.3% live accuracy at unanimous consensus) but not under
+   partial consensus (13.0% at minimum consensus) — the initial low
+   live-session accuracy was a decision-threshold issue, not a model
+   quality issue, and was corrected accordingly.
+
+**Ethics and regulatory framework:** informed consent (signed, renewable,
+right to withdraw), Declaration of Helsinki, Colombian data-protection
+law (Ley 1581/2012), and Resolución 8430/1993 (Colombian Ministry of
+Health) — classified as **minimal risk** given the fully local/offline
+processing design. Sensitive biometric data never leaves local storage;
+public materials use only the alias "YP," never identifying information.
+
+**Economic and social context:** communication disability affects an
+estimated 5-10% of the global population, yet only ~3% of people who
+need assistive technology in low-income countries have access to it,
+versus ~90% in high-income countries (WHO). Full sourced analysis in
+[`docs/impacto-economico-social-y-metricas.md`](docs/impacto-economico-social-y-metricas.md).
+
+**Partnerships:** actively seeking alliances with foundations and
+clinical organizations working with ALS, Parkinson's, multiple
+sclerosis, stroke-related aphasia, and related motor speech disorders,
+to expand the case series — see [Issue #2](../../issues/2) and
+[Issue #3](../../issues/3). The project is applying to Fundación
+Mapfre's Ignacio H. de Larramendi 2026 grant and is in the process of
+institutional affiliation with Universidad de la Costa (CUC).
 
 **Contributing:** open source for use (MIT license), single-maintainer
 repository — no external Pull Requests accepted, see
@@ -266,6 +337,15 @@ invierte el reto: en lugar de pedirle a la persona que se acerque al
 habla estándar, aprende *sus* patrones únicos con tan solo 10 grabaciones
 por palabra.
 
+**Estado del arte**
+
+| Aspecto | Sistemas comerciales | Este proyecto |
+|---|---|---|
+| Curva de aprendizaje | 500+ frases grabadas (ej. Google Project Relate) | **10 muestras/palabra** |
+| Costo de dispositivo | ~US$6.000+ (dispositivos AAC especializados) | **$0 (tu PC)** |
+| Dependencia de internet | Sí (requiere nube) | **No — 100% offline** |
+| Datos personales | En servidores del proveedor | **100% locales** |
+
 **Inicio rápido:**
 ```bash
 py -3.12 src/grabar.py      # grabar muestras por palabra
@@ -275,8 +355,47 @@ py -3.12 src/tablero_escaneo.py  # tablero de selección visual
 ```
 
 **Estado:** TRL 5-6 — demostración real con una participante (YP),
-múltiples sesiones documentadas desde julio de 2026. Estudio de caso
-único; ampliar a una serie de casos es la prioridad actual.
+múltiples sesiones documentadas desde julio de 2026. Validación de
+referencia (n=103, 8 palabras): **80.6% de exactitud LOOCV, IC95%
+71.6%-87.7%** (Clopper-Pearson); gestos: 80.0%, IC95% 61.4%-92.3%
+(n=30). Estudio de caso único; ampliar a una serie de casos es la
+prioridad actual.
+
+**Hallazgos científicos** (detalle estadístico completo en
+[`RESEARCH_LOG.md`](RESEARCH_LOG.md)):
+1. **Interferencia cognitivo-motora en captura simultánea.** Capturar
+   voz y gesto al mismo tiempo causa una caída de exactitud
+   estadísticamente significativa (voz: 80.6% → 36.7%; gestos: 80.0% →
+   30.0%; intervalos de confianza que no se traslapan — efecto real, no
+   ruido de muestra pequeña). Motivó el rediseño hacia captura
+   secuencial.
+2. **La política de decisión importa tanto como el modelo.** El sistema
+   es confiable con consenso interno unánime (92.3% en vivo) pero no
+   con consenso parcial (13.0% con consenso mínimo) — la baja exactitud
+   inicial en vivo era un problema del umbral de decisión, no del
+   modelo, y se corrigió en consecuencia.
+
+**Ética y marco normativo:** consentimiento informado (firmado,
+renovable, con derecho a retirarse), Declaración de Helsinki, Ley 1581
+de 2012 (protección de datos), y Resolución 8430 de 1993 (Ministerio de
+Salud) — clasificada como **riesgo mínimo** dado el procesamiento
+100% local. Los datos biométricos nunca salen del almacenamiento local;
+los materiales públicos usan solo el alias "YP".
+
+**Contexto económico y social:** la discapacidad de la comunicación
+afecta a un 5-10% estimado de la población mundial, pero solo ~3% de
+quienes necesitan tecnología asistiva en países de bajos ingresos tiene
+acceso a ella, frente a ~90% en países de altos ingresos (OMS). Análisis
+completo con fuentes en
+[`docs/impacto-economico-social-y-metricas.md`](docs/impacto-economico-social-y-metricas.md).
+
+**Alianzas:** en búsqueda activa de fundaciones y organizaciones
+clínicas que trabajen con ELA, Parkinson, esclerosis múltiple, afasia
+post-ictus y condiciones afines, para ampliar la serie de casos — ver
+[Issue #2](../../issues/2) y [Issue #3](../../issues/3). El proyecto
+está postulando a la convocatoria Ignacio H. de Larramendi 2026 de
+Fundación Mapfre, y en proceso de vinculación institucional con la
+Universidad de la Costa (CUC).
 
 **Contribuciones:** código abierto para uso (licencia MIT), mantenimiento
 único — no se aceptan Pull Requests externos, ver
