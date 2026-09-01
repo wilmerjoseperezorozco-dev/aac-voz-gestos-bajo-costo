@@ -88,6 +88,20 @@ común, evaluada a futuro, no una fusión de los dos sistemas.
   vocabulario núcleo actual necesita una versión validada para
   población adulta, no solo adaptada.
 
+## Qué ofrece el proyecto a quien se sume
+
+- Apoyo logístico ya presupuestado para la participación de nuevos
+  casos (desplazamiento, tiempo de sesiones) — no es una promesa a
+  futuro, ya hay recursos asignados para esta etapa de expansión.
+- Coautoría y participación en las publicaciones científicas que
+  resulten del trabajo conjunto, con reconocimiento explícito de la
+  contribución de cada aliado.
+- Visibilidad y difusión del trabajo de la organización aliada junto
+  al proyecto, en los espacios académicos y de salud donde se
+  presenten resultados.
+- Acceso abierto y gratuito al sistema (licencia MIT) para las
+  personas y familias con las que trabaje el aliado.
+
 Ver el Issue de alianzas fijado en este repositorio para contactar.
 
 ## Referencias
