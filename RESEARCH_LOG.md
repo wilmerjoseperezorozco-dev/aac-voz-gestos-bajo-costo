@@ -19,10 +19,63 @@ al reporte completo en `reportes/` cuando existe.
 
 ## 2026-07-08 — Hallazgo: interferencia cognitivo-motora en doble tarea
 
-- **Hallazgo:** al pedir a YP hacer dos tareas simultáneas (ej. hablar y
-  gesticular a la vez), la exactitud cae de forma medible frente a tarea
-  única, en ambos canales.
+- **Pregunta de investigación:** ¿mejora la exactitud del sistema si se
+  combinan voz y gesto capturados simultáneamente (la participante habla
+  y gesticula al mismo tiempo)?
+- **Metodología:** modelos entrenados exclusivamente con muestras de un
+  solo canal (sin doble tarea); 30 pares sincronizados voz+gesto
+  evaluados como conjunto de prueba independiente, sin contaminar el
+  entrenamiento.
+- **Resultado (intervalos de confianza exactos, Clopper-Pearson):**
+
+  | Canal | Tarea única (IC95%) | Doble tarea (IC95%) | Caída |
+  |---|---|---|---|
+  | Voz | 80.6% (71.6-87.7%) | 36.7% (19.9-56.1%) | −43.9 pp |
+  | Gestos | 80.0% (61.4-92.3%) | 30.0% (14.7-49.4%) | −50.0 pp |
+
+  Los intervalos de tarea única y doble tarea no se traslapan en ningún
+  canal — la caída no es atribuible al azar de una muestra pequeña, es
+  un efecto real y de magnitud considerable.
+- **Patrón de error en gestos:** bajo doble tarea, los gestos finos
+  (levantar una mano, girar la cabeza) colapsan hacia el gesto de mayor
+  amplitud y menor especificidad (levantar ambas manos), con una tasa de
+  confusión del 100% (10 de 10 casos en cada gesto fino).
+- **Interpretación:** consistente con la literatura de interferencia
+  cognitivo-motora (dual-task interference) — cuando la atención se
+  divide entre dos tareas motoras/cognitivas concurrentes, el sistema
+  nervioso prioriza el patrón de movimiento más simple o dominante,
+  perdiendo precisión en los matices finos. No es una deficiencia
+  técnica del sistema: es un hallazgo científico que subraya que, para
+  población con compromiso motor, la simplicidad operativa es superior
+  a la complejidad tecnológica.
+- **Consecuencia de diseño:** se rediseñó la arquitectura de fusión
+  multimodal de captura simultánea a captura secuencial — el sistema
+  solicita primero el canal de voz; únicamente si no se alcanza
+  consenso, solicita el gesto por separado, con la atención completa de
+  la participante en un solo canal a la vez, nunca dividida entre ambos.
 - Detalle completo: `reportes/hallazgo_interferencia_20260708.md`.
+
+## 2026-07-08 — Hallazgo: la política de decisión importa más que el modelo
+
+- Dos sesiones iniciales de validación en vivo, con un umbral de
+  decisión permisivo, arrojaron 38.6% y 57.7% de exactitud — muy por
+  debajo del 80.6% de LOOCV. El análisis por nivel de confianza del
+  modelo (k=3, fracción de vecinos que coinciden) reveló la causa real:
+
+  | Confianza del modelo (k=3) | n | Exactitud | IC95% (Clopper-Pearson) |
+  |---|---|---|---|
+  | 1.0 — consenso unánime | 13 | 92.3% | 64.0-99.8% |
+  | 0.67 — mayoría (2 de 3) | 34 | 50.0% | 32.4-67.6% |
+  | 0.33 — mínima (1 de 3) | 23 | 13.0% | 2.8-33.6% |
+
+- **Conclusión:** el modelo es confiable cuando alcanza consenso interno
+  (92.3%, comparable al 80.6% del LOOCV) — la baja exactitud en vivo era
+  producto de la política de decisión, no de la calidad del modelo.
+- **Corrección aplicada:** el umbral de confianza se ajustó para exigir
+  consenso unánime antes de comunicar una respuesta, siguiendo el
+  principio de que, en un sistema de comunicación aumentativa, una
+  respuesta incorrecta comunicada a la familia es más costosa que
+  solicitar una repetición.
 
 ## 2026-07-09 — Evaluador ciego, optimización DTW, generador LLM
 

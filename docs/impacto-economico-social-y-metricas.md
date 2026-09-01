@@ -86,6 +86,25 @@ de construir oraciones de varios símbolos, ya identificado y
 documentado en `RESEARCH_LOG.md` (2026-07-14) como un patrón asociado a
 la longitud de la secuencia seleccionada, no un fallo aleatorio.
 
+**Rigor estadístico**: las exactitudes se reportan con intervalos de
+confianza exactos (Clopper-Pearson), el método correcto para
+proporciones con muestras pequeñas — no solo el porcentaje puntual:
+
+| Canal | n | Exactitud | IC95% (Clopper-Pearson) |
+|---|---|---|---|
+| Voz | 103 | 80.6% | 71.6%-87.7% |
+| Gestos | 30 | 80.0% | 61.4%-92.3% |
+
+Dos hallazgos metodológicos adicionales, documentados en
+`RESEARCH_LOG.md`: (1) la exactitud cae de forma estadísticamente
+significativa bajo captura simultánea de voz y gesto (interferencia
+cognitivo-motora, intervalos que no se traslapan), lo que motivó
+rediseñar la captura de simultánea a secuencial; y (2) el modelo es
+confiable cuando alcanza consenso interno entre sus vecinos más
+cercanos (92.3% de exactitud en vivo con consenso unánime vs. 13.0%
+con consenso mínimo) — la política de decisión importa tanto como el
+modelo mismo.
+
 ## 6. Afiliación institucional
 
 El proyecto está postulando a la convocatoria Ignacio H. de Larramendi

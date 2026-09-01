@@ -168,6 +168,16 @@ script, con Python 3.12 fijado explícitamente.
   métricas agregadas.
 - En documentos públicos se usa siempre el alias **YP**, nunca el nombre
   real ni datos identificables.
+- **Marco normativo aplicable:** Declaración de Helsinki (Asociación
+  Médica Mundial) como referencia ética internacional para
+  investigación con seres humanos; Ley 1581 de 2012 (Colombia,
+  protección de datos personales/habeas data); Resolución 8430 de 1993
+  (Ministerio de Salud, normas científicas y técnicas para
+  investigación en salud) — la investigación se clasifica como de
+  **riesgo mínimo** bajo esta resolución, dado el esquema de
+  procesamiento local (offline) por diseño, sin alteración de la
+  condición de salud de la participante ni exposición de información
+  sensible a terceros.
 
 ## Comunidad y contribuciones
 
