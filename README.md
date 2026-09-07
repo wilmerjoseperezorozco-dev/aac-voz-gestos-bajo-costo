@@ -25,11 +25,12 @@
 > avance del proyecto:
 > **[`docs/impacto-economico-social-y-metricas.md`](docs/impacto-economico-social-y-metricas.md)**
 >
-> 🔬 **Visión a mediano plazo**: un laboratorio multimodal dedicado
+> 🔬 **Visión a mediano plazo**: un kit portátil de captura mejorada
 > para poblaciones con alta vulnerabilidad socioeconómica y
-> territorial, con patologías motoras y fonoaudiológicas — más allá
-> del prototipo en PC casera actual:
-> **[`docs/vision-laboratorio-multimodal-poblaciones-vulnerables.md`](docs/vision-laboratorio-multimodal-poblaciones-vulnerables.md)**
+> territorial, con patologías motoras y fonoaudiológicas — sin obra ni
+> instalación fija, el software sigue funcionando en cualquier
+> portátil:
+> **[`docs/vision-kit-captura-portatil-poblaciones-vulnerables.md`](docs/vision-kit-captura-portatil-poblaciones-vulnerables.md)**
 
 El proyecto está postulando a la convocatoria Ignacio H. de Larramendi
 2026 de Fundación Mapfre, y se encuentra en proceso de vinculación
