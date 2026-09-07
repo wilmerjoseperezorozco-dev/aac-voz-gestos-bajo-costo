@@ -24,6 +24,12 @@
 > fuentes verificables (OMS, Banco Mundial, DANE) + métricas reales de
 > avance del proyecto:
 > **[`docs/impacto-economico-social-y-metricas.md`](docs/impacto-economico-social-y-metricas.md)**
+>
+> 🔬 **Visión a mediano plazo**: un laboratorio multimodal dedicado
+> para poblaciones con alta vulnerabilidad socioeconómica y
+> territorial, con patologías motoras y fonoaudiológicas — más allá
+> del prototipo en PC casera actual:
+> **[`docs/vision-laboratorio-multimodal-poblaciones-vulnerables.md`](docs/vision-laboratorio-multimodal-poblaciones-vulnerables.md)**
 
 El proyecto está postulando a la convocatoria Ignacio H. de Larramendi
 2026 de Fundación Mapfre, y se encuentra en proceso de vinculación
