@@ -33,8 +33,11 @@
 > **[`docs/vision-kit-captura-portatil-poblaciones-vulnerables.md`](docs/vision-kit-captura-portatil-poblaciones-vulnerables.md)**
 
 El proyecto está postulando a la convocatoria Ignacio H. de Larramendi
-2026 de Fundación Mapfre, y se encuentra en proceso de vinculación
-institucional con la Universidad de la Costa (CUC).
+2026 de Fundación Mapfre, con vinculación institucional en trámite con
+la Universidad de la Costa (CUC) y una alianza estratégica formalizada
+con la **Fundación Idónea para el Servicio Social (F.I.S.S.)**, entidad
+sin ánimo de lucro del Caribe colombiano que aporta articulación
+comunitaria y acompañamiento psicosocial para el trabajo de campo.
 
 > **Aviso:** este es un prototipo de investigación de comunicación
 > aumentativa y alternativa (AAC). **No es un dispositivo médico**, no ha
@@ -315,13 +318,17 @@ need assistive technology in low-income countries have access to it,
 versus ~90% in high-income countries (WHO). Full sourced analysis in
 [`docs/impacto-economico-social-y-metricas.md`](docs/impacto-economico-social-y-metricas.md).
 
-**Partnerships:** actively seeking alliances with foundations and
-clinical organizations working with ALS, Parkinson's, multiple
-sclerosis, stroke-related aphasia, and related motor speech disorders,
-to expand the case series — see [Issue #2](../../issues/2) and
-[Issue #3](../../issues/3). The project is applying to Fundación
-Mapfre's Ignacio H. de Larramendi 2026 grant and is in the process of
-institutional affiliation with Universidad de la Costa (CUC).
+**Partnerships:** the project has a formalized strategic alliance with
+**Fundación Idónea para el Servicio Social (F.I.S.S.)**, a nonprofit
+in the Colombian Caribbean providing community outreach and
+psychosocial support for fieldwork, and is applying to Fundación
+Mapfre's Ignacio H. de Larramendi 2026 grant with institutional
+affiliation in progress with Universidad de la Costa (CUC). Still
+actively seeking additional alliances with foundations and clinical
+organizations working with ALS, Parkinson's, multiple sclerosis,
+stroke-related aphasia, and related motor speech disorders, to expand
+the case series — see [Issue #2](../../issues/2) and
+[Issue #3](../../issues/3).
 
 **Contributing:** open source for use (MIT license), single-maintainer
 repository — no external Pull Requests accepted, see
@@ -398,9 +405,14 @@ acceso a ella, frente a ~90% en países de altos ingresos (OMS). Análisis
 completo con fuentes en
 [`docs/impacto-economico-social-y-metricas.md`](docs/impacto-economico-social-y-metricas.md).
 
-**Alianzas:** en búsqueda activa de fundaciones y organizaciones
-clínicas que trabajen con ELA, Parkinson, esclerosis múltiple, afasia
-post-ictus y condiciones afines, para ampliar la serie de casos — ver
+**Alianzas:** el proyecto cuenta con una alianza estratégica
+formalizada con la **Fundación Idónea para el Servicio Social
+(F.I.S.S.)**, entidad sin ánimo de lucro del Caribe colombiano (NIT
+901362687-0) que aporta articulación comunitaria, acompañamiento
+psicosocial y apoyo interdisciplinario para el trabajo de campo. Sigue
+en búsqueda activa de fundaciones y organizaciones clínicas adicionales
+que trabajen con ELA, Parkinson, esclerosis múltiple, afasia post-ictus
+y condiciones afines, para ampliar la serie de casos — ver
 [Issue #2](../../issues/2) y [Issue #3](../../issues/3). El proyecto
 está postulando a la convocatoria Ignacio H. de Larramendi 2026 de
 Fundación Mapfre, y en proceso de vinculación institucional con la

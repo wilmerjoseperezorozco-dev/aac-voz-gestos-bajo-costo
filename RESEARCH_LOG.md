@@ -161,6 +161,44 @@ al reporte completo en `reportes/` cuando existe.
   Documentado también en `docs/plan-comunidad-open-source-2026.md`
   (sección de mejoras para personas con discapacidad motora).
 
+## 2026-09-08 — Fundamentación teórica: literatura de respaldo identificada
+
+Se identificaron tres referencias bibliográficas para reforzar la
+fundamentación teórica del proyecto (relevante tanto para la memoria
+MAPFRE como para una futura aspiración de maestría en ingeniería
+biomédica). Se listan aquí como base teórica a citar, no como fuente
+de cambios de código:
+
+- **Tompkins, W. J. (ed.), *Biomedical Signal Processing and Signal
+  Modeling*, Wiley, 1998.** Fundamento matemático (dominio de la
+  frecuencia, filtros adaptativos, modelado de señales cuasi-periódicas
+  ruidosas) directamente relacionado con el pipeline de extracción de
+  características de voz (MFCC) y gestos ya implementado en
+  `src/gestos_features.py` y `src/modelo.py`. Relevante en particular si
+  se retoma la línea futura de sensores EMG (ver
+  `docs/CONFIDENCIAL-especificacion-kit-captura-portatil.md`, sección 5).
+- **Feher, J., *Quantitative Human Physiology: An Introduction*,
+  Academic Press, 2012/2017.** Fundamento fisiológico del control motor
+  del habla y la variabilidad de producción — sustento teórico de *por
+  qué* el enfoque de clasificador personalizado (Mecanismo A, ver
+  `docs/ruta-expansion-condiciones-neurologicas.md`) es apropiado para
+  condiciones con compromiso motor del habla (disartria/apraxia), más
+  allá de la validación empírica ya obtenida con YP.
+- **Dey, N., Ashour, A. S. et al. (eds.), *Deep Learning Techniques for
+  Biomedical and Health Informatics*, Springer, 2020.** Confirmado por
+  el investigador principal como la obra referida. Relevante para
+  justificar la migración futura del módulo
+  de expansión de frases (actualmente Qwen2.5-1.5B-Instruct sobre CPU)
+  hacia modelos locales de mayor capacidad, en línea con la
+  justificación de GPU dedicada de la memoria MAPFRE v5.
+
+**Nota metodológica:** estas referencias se incorporan como respaldo
+teórico retrospectivo de decisiones ya tomadas empíricamente (no
+determinaron el diseño original, que fue iterativo y validado con datos
+reales de YP). Esta distinción debe mantenerse explícita en cualquier
+documento formal que las cite, para no sugerir una fundamentación
+teórica previa que no existió.
+
 ## Próximos hallazgos a documentar
 
 - Resultados de la ampliación de la serie de casos (más allá de YP).
