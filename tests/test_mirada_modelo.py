@@ -105,42 +105,12 @@ def test_error_lopo_bajo_si_la_calibracion_generaliza_y_alto_si_es_ruido():
     assert error_calibracion_lopo(X_bueno, Y) < 0.25 * error_calibracion_lopo(X_ruido, Y)
 
 
-def _calibracion_sintetica(rng, malos=()):
-    from mirada_modelo import puntos_calibracion
+def test_error_cv_bloques_bajo_con_relacion_estable_y_alto_con_ruido():
+    from mirada_modelo import error_cv_bloques
 
-    pts = puntos_calibracion(PANTALLA)
-    X, Y = [], []
-    for i, (px, py) in enumerate(pts):
-        ideal = np.array([-(px - 960) / 40.0, (py - 540) / 40.0])   # "yaw, pitch"
-        pos = np.array([0.0, 0.0]) if i in malos else ideal         # no llegó al punto
-        X.append(pos + rng.normal(0, 0.3, (40, 2)))
-        Y.append(np.tile([px, py], (40, 1)))
-    return np.vstack(X), np.vstack(Y), pts
-
-
-def test_ajustar_robusto_descarta_los_dos_puntos_que_no_se_alcanzaron():
-    from mirada_modelo import ajustar_robusto
-
-    X, Y, pts = _calibracion_sintetica(np.random.default_rng(5), malos=(0, 8))
-    modelo, excluidos, mascara = ajustar_robusto(X, Y)
-    esperado = {tuple(float(round(v)) for v in pts[0]), tuple(float(round(v)) for v in pts[8])}
-    assert set(excluidos) == esperado and mascara.sum() == 7 * 40
-
-
-def test_ajustar_robusto_no_descarta_nada_en_calibracion_limpia():
-    from mirada_modelo import ajustar_robusto
-
-    X, Y, _ = _calibracion_sintetica(np.random.default_rng(6))
-    _, excluidos, mascara = ajustar_robusto(X, Y)
-    assert excluidos == [] and mascara.all()
-
-
-def test_ventana_mas_estable_evita_el_tramo_en_movimiento():
-    from mirada_modelo import ventana_mas_estable
-
-    rng = np.random.default_rng(7)
-    movimiento = np.column_stack([np.linspace(-20, 5, 30), np.linspace(0, 8, 30)])
-    quieto = np.array([[5.0, 8.0]]) + rng.normal(0, 0.1, (40, 2))
-    frames = np.vstack([movimiento, quieto])
-    elegidos, sd = ventana_mas_estable(frames, [0, 1], 25)
-    assert sd < 0.2 and elegidos[:, 0].min() > 4.0
+    rng = np.random.default_rng(8)
+    tt = np.arange(0, 20, 1 / 30)
+    Y = trayectoria_auto(tt, PANTALLA)
+    X_bueno = np.column_stack([-(Y[:, 0] - 960) / 40.0, (Y[:, 1] - 540) / 40.0])         + rng.normal(0, 0.2, (len(tt), 2))
+    X_ruido = rng.normal(size=(len(tt), 2))
+    assert error_cv_bloques(X_bueno, Y) < 0.3 * error_cv_bloques(X_ruido, Y)

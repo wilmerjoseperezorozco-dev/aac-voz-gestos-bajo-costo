@@ -58,6 +58,12 @@ def flecha(actual, previo, mayor_es_mejor: bool, umbral: float) -> str:
     return "↑" if (d > 0) == mayor_es_mejor else "↓"
 
 
+def calib_px(fila: dict) -> float | None:
+    """Error de calibración: CV por bloques (seguimiento) o LOPO (9 puntos)."""
+    cv = num(fila, "error_calib_cv_px")
+    return cv if cv is not None else num(fila, "error_calib_lopo_px")
+
+
 def persecucion() -> None:
     filas = leer("sesiones_mirada.csv")
     print("=" * 100)
@@ -66,8 +72,8 @@ def persecucion() -> None:
     if not filas:
         print("  Aún no hay sesiones. Corre lanzadores\\12_Persecucion_Mirada.bat")
         return
-    print(f"  {'fecha':16s} {'quien':6s} {'canal':7s} {'mejora':>8s}  {'error%':>7s}  {'r_x':>5s} {'r_y':>5s}  "
-          f"{'calibLOPO':>9s}  {'fps':>4s} {'cara':>5s} {'brillo':>6s} {'ancho':>6s} {'avisos':>6s}")
+    print(f"  {'fecha':16s} {'quien':6s} {'canal':7s} {'mejora':>8s}  {'error%':>7s}  {'r_x':>5s} {'r_y':>5s} {'crudo_x':>7s} {'crudo_y':>7s}  "
+          f"{'calib':>7s}  {'fps':>4s} {'cara':>5s} {'brillo':>6s} {'ancho':>6s} {'avisos':>6s}")
     previo: dict[str, dict] = {}
     for f in filas:
         canal = f.get("canal") or "ojos"     # sesiones anteriores al canal cabeza
@@ -75,12 +81,13 @@ def persecucion() -> None:
         p = previo.get((quien, canal), {})
         mejora, error = num(f, "mejora_vs_constante"), num(f, "rmse_pct_diagonal")
         rx, ry = num(f, "r_x"), num(f, "r_y")
-        lopo = num(f, "error_calib_lopo_px")
+        lopo = calib_px(f)
         print(f"  {f['fecha_hora'][:16].replace('T', ' '):16s} {quien:6s} {canal:7s} "
               f"{fmt(None if mejora is None else mejora * 100, '{:+.0f}%'):>7s}{flecha(mejora, num(p, 'mejora_vs_constante'), True, 0.03)} "
               f"{fmt(error, '{:.0f}%'):>6s}{flecha(error, num(p, 'rmse_pct_diagonal'), False, 1.0)} "
-              f"{fmt(rx):>5s} {fmt(ry):>5s}  "
-              f"{fmt(lopo, '{:.0f}px'):>8s}{flecha(lopo, num(p, 'error_calib_lopo_px'), False, 20.0)} "
+              f"{fmt(rx):>5s} {fmt(ry):>5s} {fmt(num(f, 'r_crudo_x'), '{:+.2f}'):>7s} "
+              f"{fmt(num(f, 'r_crudo_y'), '{:+.2f}'):>7s}  "
+              f"{fmt(lopo, '{:.0f}px'):>8s}{flecha(lopo, calib_px(p), False, 20.0)} "
               f"{fmt(num(f, 'fps'), '{:.0f}'):>4s} "
               f"{fmt(None if num(f, 'tasa_cara') is None else num(f, 'tasa_cara') * 100, '{:.0f}%'):>5s} "
               f"{fmt(num(f, 'brillo'), '{:.0f}'):>6s} "
@@ -89,6 +96,7 @@ def persecucion() -> None:
         previo[(quien, canal)] = f
 
     print("\n  Lectura: 'mejora' > 0 = el canal le gana a apuntar siempre al centro.")
+    print("  'crudo' = relación del yaw/pitch (o iris) con el blanco, sin calibración; |r| cerca de 1 = lo sigue.")
     ultima = filas[-1]
     consejos = []
     brillo, ancho, fps = num(ultima, "brillo"), num(ultima, "ancho_cara_pct"), num(ultima, "fps")

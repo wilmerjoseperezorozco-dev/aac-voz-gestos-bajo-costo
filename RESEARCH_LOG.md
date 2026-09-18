@@ -251,10 +251,10 @@ teórica previa que no existió.
   descartando esos dos puntos atípicos (criterio que usa solo datos de
   calibración), error de 21% de la diagonal, +20% frente al centro y
   correlaciones de 0.85 (x) y 0.87 (y).
-- **Cambios derivados:** el canal cabeza regresa solo con yaw + pitch; por
-  punto se usa la ventana más estable de la captura; se descartan hasta 2
-  puntos solo si son claramente atípicos, y el script avisa cuáles repetir
-  (ver `CHANGELOG.md`).
+- **Cambios derivados (parcialmente retirados en la entrada siguiente):**
+  el canal cabeza regresa solo con yaw + pitch (se mantiene); la ventana
+  estable y el descarte de puntos atípicos NO resistieron las sesiones
+  nuevas y se retiraron.
 - **Limitaciones:** el criterio de descarte y la elección de rasgos se
   afinaron con esta misma sesión, así que falta confirmarlos con sesiones
   nuevas antes de darlos por buenos. Un solo control no es una referencia
@@ -265,6 +265,38 @@ teórica previa que no existió.
 - **Siguiente:** segunda sesión de control con el script actualizado
   (confirmación con datos nuevos), control del canal mirada, y luego la
   primera sesión del canal cabeza con la participante.
+
+## 2026-09-18 — Dos sesiones más de control: calibrar con el seguimiento
+
+- **Sesiones:** dos sesiones más del investigador (CTRL1), canal cabeza,
+  mismo montaje. Estas sesiones ya funcionaron como la prueba fuera de
+  muestra que faltaba.
+- **Resultado negativo:** la regla de descarte de puntos de calibración,
+  afinada con la primera sesión, ayudó en esa (+10% a +20% frente a
+  apuntar al centro) pero empeoró las otras dos (+24% a -1%, y -97% a
+  -273%). No generaliza y se retiró.
+- **La señal cruda es estable:** en las tres sesiones el yaw se relaciona
+  con la posición-x del blanco (r = -0.87, -0.96, -0.91). La relación
+  vertical es más débil y variable (pitch con blanco-y: 0.86, 0.66, 0.46),
+  porque la cabeza se inclina un rango mucho menor que el que gira (desv.
+  de ~3-5° en pitch contra ~9-10° en yaw).
+- **Lo frágil era la calibración con 9 puntos quietos:** en una sesión el
+  yaw de la calibración quedó entre -3° y +4° y el de la persecución entre
+  -10° y +19°; la estrategia de la persona cambia entre mantener un punto y
+  seguir uno que se mueve. Calibrar con la primera mitad de la propia
+  persecución y evaluar en la segunda (que el modelo no vio) mejoró en las
+  tres sesiones: -9% → +25%, -148% → +62% y +21% → +28% frente a apuntar al
+  centro.
+- **Limitaciones:** una persona, tres sesiones, un mismo día. La segunda
+  mitad repite posiciones de la primera (la trayectoria es periódica), así
+  que es una prueba menos exigente que una trayectoria nueva; falta probar
+  con otra trayectoria o con el mouse como blanco. El 12% a 28% de error
+  restante y el eje vertical débil siguen sin resolverse.
+- **Cambios:** el protocolo pasa a calibrar con el seguimiento (los 9 puntos
+  quietos quedan como opción `--puntos`, para comparar), con alias visible al
+  iniciar y un lanzador propio para sesiones de control.
+- **Siguiente:** control del canal mirada, y luego la primera sesión de
+  cabeza con la participante.
 
 ## Próximos hallazgos a documentar
 

@@ -6,6 +6,7 @@ Uso:
     py -3.12 src/persecucion_mirada.py --mouse     # el blanco es TU mouse
     py -3.12 src/persecucion_mirada.py --ventana   # blanco en ventana, no pantalla completa
     py -3.12 src/persecucion_mirada.py --sin-monitor
+    py -3.12 src/persecucion_mirada.py --puntos    # agrega 9 puntos quietos (comparación)
     py -3.12 src/persecucion_mirada.py --alias CTRL1   # sesión de control (no es YP)
 
 Canal cabeza (por defecto): la observación de campo es que a YP le cuesta
@@ -13,10 +14,13 @@ mover los ojos y sigue los estímulos con la cabeza. Se mide el giro
 (yaw) y la inclinación (pitch) de la cabeza contra la posición del blanco.
 Canal ojos: rasgos de iris y mirada de MediaPipe (ver mirada_modelo.py).
 
-Fase 1  Calibración: 9 puntos fijos; se ajusta una regresión ridge
-        rasgos -> posición en pantalla.
-Fase 2  Persecución: un blanco se mueve lento y suave (o tu mouse). La
-        calibración no ve estos datos: las métricas miden generalización.
+La persecución (blanco lento y suave, o tu mouse) se divide en el tiempo: la
+primera mitad CALIBRA la regresión rasgos -> posición en pantalla con la
+estrategia real de la persona al seguir el blanco, y la segunda mitad la
+EVALÚA sin que el modelo la haya visto. Con --puntos se agrega antes una
+fase de 9 puntos quietos, solo para comparar (en las sesiones de control
+calibrar con puntos quietos rindió peor y más irregular que con el
+seguimiento).
 
 Mientras corre, una ventana pequeña "Monitor operador" (para ti, no para
 YP) muestra qué está capturando el sistema y avisa de luz, distancia y
@@ -52,11 +56,10 @@ RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ / "src"))
 
 import monitor_operador as mon  # noqa: E402
-from mirada_modelo import (ajustar_robusto, angulos_cabeza,  # noqa: E402
-                           error_calibracion_lopo, metricas_persecucion,
-                           predecir, puntos_calibracion, rasgos_cabeza,
-                           rasgos_mirada, suavizar, trayectoria_auto,
-                           ventana_mas_estable)
+from mirada_modelo import (ajustar_ridge, angulos_cabeza,  # noqa: E402
+                           error_cv_bloques, metricas_persecucion, predecir,
+                           puntos_calibracion, rasgos_cabeza, rasgos_mirada,
+                           suavizar, trayectoria_auto, _pearson)
 
 CONFIG = json.loads((RAIZ / "config.json").read_text(encoding="utf-8"))
 MODELO_CARA = RAIZ / "modelos" / "face_landmarker.task"
@@ -66,25 +69,18 @@ VENTANA = "Persecucion"
 MIN_FRAMES = 100
 _T0 = time.monotonic()
 
-# Por canal: la cabeza se mueve más lento que los ojos. `dwell` es cuánto se
-# muestra cada punto de calibración; de ese tramo se usa solo la ventana más
-# estable (`ventana_s`). `cols_modelo` son los rasgos que entran a la
-# regresión: pocos y directos (yaw+pitch; iris), porque con menos parámetros
-# la calibración de 9 puntos generaliza mejor.
+# Por canal: la cabeza se mueve más lento que los ojos. `cols_modelo` son los
+# rasgos que entran a la regresión: pocos y directos (yaw + pitch; iris),
+# porque con menos parámetros la calibración generaliza mejor. `asentar` y
+# `grabar` solo se usan con --puntos (9 puntos quietos, opcional).
 PARAMETROS = {
-    "cabeza": dict(dwell=4.0, ventana_s=1.0, duracion=40.0,
+    "cabeza": dict(asentar=2.0, grabar=1.5, duracion=40.0,
                    periodos=(14.0, 20.0), max_retardo=2.0, n_rasgos=6,
-                   cols_estab=[0, 1], cols_modelo=[0, 1]),
-    "ojos": dict(dwell=2.5, ventana_s=1.0, duracion=24.0,
+                   cols_modelo=[0, 1]),
+    "ojos": dict(asentar=1.0, grabar=1.5, duracion=30.0,
                  periodos=(8.0, 12.0), max_retardo=1.0, n_rasgos=15,
-                 cols_estab=[0, 1, 2, 3], cols_modelo=[0, 1, 2, 3]),
+                 cols_modelo=[0, 1, 2, 3]),
 }
-NOMBRES_FILA, NOMBRES_COL = ("arriba", "centro", "abajo"), ("izq", "centro", "der")
-
-
-def nombre_punto(i: int) -> str:
-    """Nombre legible del punto de calibración i (1-9, en orden de lectura)."""
-    return f"{i} ({NOMBRES_FILA[(i - 1) // 3]}-{NOMBRES_COL[(i - 1) % 3]})"
 
 
 def tamano_pantalla() -> tuple[int, int]:
@@ -301,7 +297,8 @@ def main() -> None:
     duracion = 4.0 if rapido else par["duracion"]
     if "--seg" in args:
         duracion = float(args[args.index("--seg") + 1])
-    dwell, ventana_s = (1.2, 0.5) if rapido else (par["dwell"], par["ventana_s"])
+    asentar, grabar = (0.3, 0.5) if rapido else (par["asentar"], par["grabar"])
+    con_puntos = "--puntos" in args
 
     pantalla = (800, 450) if ventana else tamano_pantalla()
     cara = crear_detector()
@@ -344,50 +341,18 @@ def main() -> None:
     try:
         if not sin_espera:
             esperar_espacio(hilo, pantalla,
-                            "Punto verde = cara detectada. ESPACIO para empezar")
-        puntos = puntos_calibracion(pantalla)
-        segmentos = []
-        for i, (px, py) in enumerate(puntos, 1):
-            f, _ = correr_fase(hilo, pantalla, dwell,
-                               lambda t, px=px, py=py: (px, py),
-                               f"{verbo}  {i}/9")
-            segmentos.append(f)
-        cols_e, cols_m = par["cols_estab"], par["cols_modelo"]
-        elegidos, estab = [], []
-        for f in segmentos:
-            if len(f) == 0:
-                continue
-            n_ventana = max(10, int(round(len(f) * ventana_s / dwell)))
-            v, sd = ventana_mas_estable(f, [3 + c for c in cols_e], n_ventana)
-            elegidos.append(v)
-            estab.append(sd)
-        vacio = np.empty((0, 3 + par["n_rasgos"]))
-        calib = np.vstack(elegidos) if elegidos else vacio
-        min_frames = 30 if rapido else MIN_FRAMES
-        if len(calib) < min_frames:
-            print(f"\n❌ Solo {len(calib)} frames de calibración con cara "
-                  "válida. Mejor luz y la cara centrada frente a la cámara.")
-            return
-        Xc, Yc = calib[:, 3:][:, cols_m], calib[:, 1:3]
-        modelo, excluidos, mascara = ajustar_robusto(Xc, Yc)
-        indice = {tuple(float(round(v)) for v in pt): i
-                  for i, pt in enumerate(puntos, 1)}
-        idx_excluidos = sorted(indice[e] for e in excluidos if e in indice)
-        err_cal = float(np.sqrt(np.mean(np.linalg.norm(
-            predecir(modelo, Xc[mascara]) - Yc[mascara], axis=1) ** 2)))
-        err_lopo = error_calibracion_lopo(Xc[mascara], Yc[mascara])
-        estab_media = float(np.nanmean(estab)) if estab else float("nan")
-        print(f"\n  Calibración: {int(mascara.sum())} frames en "
-              f"{9 - len(idx_excluidos)} de 9 puntos | error de ajuste "
-              f"{err_cal:.0f} px (optimista) | dejando un punto fuera "
-              f"{err_lopo:.0f} px | estabilidad {estab_media:.2f}")
-        if idx_excluidos:
-            print("  ⚠ Puntos descartados de la calibración (no se alcanzaron o "
-                  "no quedaron estables):")
-            for i in idx_excluidos:
-                print(f"      · {nombre_punto(i)}")
-            print("    Pídele a YP que llegue con calma a cada punto y que espere "
-                  "a que se estabilice; repite la sesión si son varios.")
+                            f"{alias}  |  punto verde = cara detectada  |  ESPACIO para empezar")
+        calib = np.empty((0, 3 + par["n_rasgos"]))
+        if con_puntos:
+            segmentos = []
+            for i, (px, py) in enumerate(puntos_calibracion(pantalla), 1):
+                f, _ = correr_fase(hilo, pantalla, asentar + grabar,
+                                   lambda t, px=px, py=py: (px, py),
+                                   f"{verbo}  {i}/9", grabar_desde=asentar)
+                if len(f):
+                    segmentos.append(f)
+            if segmentos:
+                calib = np.vstack(segmentos)
 
         centro = (pantalla[0] / 2, pantalla[1] / 2)
         correr_fase(hilo, pantalla, 1.5 if rapido else 3.0, lambda t: centro,
@@ -409,26 +374,58 @@ def main() -> None:
         cap.release()
         cv2.destroyAllWindows()
 
+    # La persecución se divide en el tiempo: la 1ª mitad calibra el modelo
+    # (con la estrategia real de la persona al seguir el blanco) y la 2ª
+    # mitad lo evalúa sin que el modelo la haya visto.
+    cols_m = par["cols_modelo"]
+    t_corte = float(datos[:, 0].max()) / 2 if len(datos) else 0.0
+    A, B = datos[datos[:, 0] <= t_corte], datos[datos[:, 0] > t_corte]
     min_frames = 30 if rapido else MIN_FRAMES
-    if len(datos) < min_frames:
-        print(f"\n❌ Solo {len(datos)} frames válidos en la persecución "
-              f"(de {total}). No alcanza para analizar.")
+    if len(A) < min_frames or len(B) < min_frames:
+        print(f"\n❌ Frames válidos: {len(A)} para calibrar y {len(B)} para "
+              f"evaluar (de {total}). No alcanza. Mejor luz y la cara centrada "
+              "frente a la cámara.")
         return
-    t, blanco = datos[:, 0], datos[:, 1:3]
-    pred = suavizar(predecir(modelo, datos[:, 3:][:, cols_m]), 5)
+    XA, YA = A[:, 3:][:, cols_m], A[:, 1:3]
+    modelo = ajustar_ridge(XA, YA)
+    err_cv = error_cv_bloques(XA, YA)
+    t, blanco = B[:, 0], B[:, 1:3]
+    pred = suavizar(predecir(modelo, B[:, 3:][:, cols_m]), 5)
     m = metricas_persecucion(t, blanco, pred, pantalla, par["max_retardo"])
 
+    # Relación cruda en TODA la persecución: no depende de ninguna calibración.
+    if canal == "cabeza":
+        crudo_x, crudo_y = datos[:, 3], datos[:, 4]                # yaw, pitch
+    else:
+        crudo_x = (datos[:, 3] + datos[:, 4]) / 2                   # iris-x
+        crudo_y = (datos[:, 5] + datos[:, 6]) / 2                   # iris-y
+    r_crudo_x, r_crudo_y = _pearson(crudo_x, datos[:, 1]), _pearson(crudo_y, datos[:, 2])
+
+    mejora_puntos = None
+    if len(calib) >= min_frames:
+        modelo_p = ajustar_ridge(calib[:, 3:][:, cols_m], calib[:, 1:3])
+        pred_p = suavizar(predecir(modelo_p, B[:, 3:][:, cols_m]), 5)
+        mejora_puntos = metricas_persecucion(
+            t, blanco, pred_p, pantalla, par["max_retardo"])["mejora_vs_constante"]
+
     print("\n" + "=" * 60)
-    print(f"  RESULTADO — canal {canal} (calibración y persecución: datos distintos)")
+    print(f"  RESULTADO — {alias} — canal {canal}")
     print("=" * 60)
-    print(f"  Frames válidos: {m['n_frames']} de {total} "
-          f"({m['n_frames'] / total:.0%})")
+    print(f"  Calibración con seguimiento: {len(A)} frames (primera mitad, "
+          f"{t_corte:.0f} s) | validación cruzada por bloques {err_cv:.0f} px")
+    print(f"  Evaluación: {len(B)} frames de la segunda mitad (de {total} en "
+          "total); el modelo no la vio")
     print(f"  Error medio: {m['rmse_px']:.0f} px = {m['rmse_pct_diagonal']:.1f}% "
           "de la diagonal de pantalla")
     print(f"  Línea base (apuntar siempre al centro): {m['rmse_linea_base_px']:.0f} px "
           f"-> mejora {m['mejora_vs_constante']:+.0%}")
-    print(f"  Correlación con el blanco: x={m['r_x']:.2f}  y={m['r_y']:.2f}")
+    print(f"  Correlación del modelo con el blanco: x={m['r_x']:.2f}  y={m['r_y']:.2f}")
+    print(f"  Relación cruda con el blanco (sin calibración, toda la prueba): "
+          f"x={r_crudo_x:+.2f}  y={r_crudo_y:+.2f}")
     print(f"  Retardo: x={m['retardo_x_ms']:.0f} ms  y={m['retardo_y_ms']:.0f} ms")
+    if mejora_puntos is not None:
+        print(f"  Con 9 puntos quietos como calibración, la mejora habría sido "
+              f"{mejora_puntos:+.0%}")
     print("  Entorno: "
           f"{estadisticas['fps']:.0f} fps | cara {estadisticas['tasa_cara']:.0%} | "
           f"brillo {estadisticas['brillo']:.0f} | "
@@ -444,18 +441,18 @@ def main() -> None:
     sello = datetime.now().strftime("%Y%m%d_%H%M%S")
     np.savez_compressed(DIR_DATOS / f"persecucion_{sello}.npz",
                         calibracion=calib, persecucion=datos, prediccion=pred,
-                        pantalla=np.array(pantalla), modo_mouse=modo_mouse,
-                        canal=canal, alias=alias,
-                        puntos_excluidos=np.array(idx_excluidos),
+                        corte_t=t_corte, pantalla=np.array(pantalla),
+                        modo_mouse=modo_mouse, canal=canal, alias=alias,
                         columnas_modelo=np.array(cols_m))
     DIR_REGISTROS.mkdir(exist_ok=True)
     agregar_csv(DIR_REGISTROS / "sesiones_mirada.csv", {
         "fecha_hora": datetime.now().isoformat(timespec="seconds"),
         "alias": alias, "canal": canal,
-        "modo": "mouse" if modo_mouse else "auto", **m,
-        "error_calib_px": err_cal, "error_calib_lopo_px": err_lopo,
-        "estabilidad_calib": estab_media,
-        "puntos_excluidos": ";".join(str(i) for i in idx_excluidos),
+        "modo": "mouse" if modo_mouse else "auto",
+        "calibracion": "puntos+seguimiento" if con_puntos else "seguimiento",
+        **m, "error_calib_cv_px": err_cv,
+        "r_crudo_x": r_crudo_x, "r_crudo_y": r_crudo_y,
+        "mejora_puntos": "" if mejora_puntos is None else mejora_puntos,
         **{k: estadisticas[k] for k in ("fps", "tasa_cara", "brillo",
                                         "ancho_cara_pct", "pct_frames_con_aviso")}})
     print(f"\n  Guardado en data_mirada/persecucion_{sello}.npz")
