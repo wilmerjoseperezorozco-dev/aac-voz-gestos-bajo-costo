@@ -61,21 +61,22 @@ def flecha(actual, previo, mayor_es_mejor: bool, umbral: float) -> str:
 def persecucion() -> None:
     filas = leer("sesiones_mirada.csv")
     print("=" * 100)
-    print("  PERSECUCIÓN (blanco en pantalla)   ↑ mejor que la sesión previa del canal · ↓ peor · ≈ igual")
+    print("  PERSECUCIÓN (blanco en pantalla)   ↑ mejor que la sesión previa de la misma persona y canal · ↓ peor · ≈ igual")
     print("=" * 100)
     if not filas:
         print("  Aún no hay sesiones. Corre lanzadores\\12_Persecucion_Mirada.bat")
         return
-    print(f"  {'fecha':16s} {'canal':7s} {'mejora':>8s}  {'error%':>7s}  {'r_x':>5s} {'r_y':>5s}  "
+    print(f"  {'fecha':16s} {'quien':6s} {'canal':7s} {'mejora':>8s}  {'error%':>7s}  {'r_x':>5s} {'r_y':>5s}  "
           f"{'calibLOPO':>9s}  {'fps':>4s} {'cara':>5s} {'brillo':>6s} {'ancho':>6s} {'avisos':>6s}")
     previo: dict[str, dict] = {}
     for f in filas:
         canal = f.get("canal") or "ojos"     # sesiones anteriores al canal cabeza
-        p = previo.get(canal, {})
+        quien = f.get("alias") or "?"
+        p = previo.get((quien, canal), {})
         mejora, error = num(f, "mejora_vs_constante"), num(f, "rmse_pct_diagonal")
         rx, ry = num(f, "r_x"), num(f, "r_y")
         lopo = num(f, "error_calib_lopo_px")
-        print(f"  {f['fecha_hora'][:16].replace('T', ' '):16s} {canal:7s} "
+        print(f"  {f['fecha_hora'][:16].replace('T', ' '):16s} {quien:6s} {canal:7s} "
               f"{fmt(None if mejora is None else mejora * 100, '{:+.0f}%'):>7s}{flecha(mejora, num(p, 'mejora_vs_constante'), True, 0.03)} "
               f"{fmt(error, '{:.0f}%'):>6s}{flecha(error, num(p, 'rmse_pct_diagonal'), False, 1.0)} "
               f"{fmt(rx):>5s} {fmt(ry):>5s}  "
@@ -85,7 +86,7 @@ def persecucion() -> None:
               f"{fmt(num(f, 'brillo'), '{:.0f}'):>6s} "
               f"{fmt(num(f, 'ancho_cara_pct'), '{:.0f}%'):>6s} "
               f"{fmt(num(f, 'pct_frames_con_aviso'), '{:.0f}%'):>6s}")
-        previo[canal] = f
+        previo[(quien, canal)] = f
 
     print("\n  Lectura: 'mejora' > 0 = el canal le gana a apuntar siempre al centro.")
     ultima = filas[-1]

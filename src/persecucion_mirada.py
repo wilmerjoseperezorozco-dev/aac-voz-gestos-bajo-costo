@@ -6,6 +6,7 @@ Uso:
     py -3.12 src/persecucion_mirada.py --mouse     # el blanco es TU mouse
     py -3.12 src/persecucion_mirada.py --ventana   # blanco en ventana, no pantalla completa
     py -3.12 src/persecucion_mirada.py --sin-monitor
+    py -3.12 src/persecucion_mirada.py --alias CTRL1   # sesión de control (no es YP)
 
 Canal cabeza (por defecto): la observación de campo es que a YP le cuesta
 mover los ojos y sigue los estímulos con la cabeza. Se mide el giro
@@ -278,6 +279,8 @@ def main() -> None:
     modo_mouse = "--mouse" in args
     rapido = "--rapido" in args            # prueba corta (humo/depuración)
     sin_espera = "--sin-espera" in args
+    alias = (args[args.index("--alias") + 1] if "--alias" in args
+             else CONFIG["participante"]["alias"])
     con_monitor = "--sin-monitor" not in args
     # Con un solo monitor, el blanco a pantalla completa taparía el monitor
     # del operador: la prueba pasa a ventana.
@@ -318,7 +321,7 @@ def main() -> None:
     seguir = ("Sigue el punto moviendo la CABEZA" if canal == "cabeza"
               else "Sigue el punto con la vista")
     print("=" * 60)
-    print(f"  PERSECUCIÓN — canal {canal.upper()} — "
+    print(f"  PERSECUCIÓN — {alias} — canal {canal.upper()} — "
           + ("blanco = mouse" if modo_mouse else "blanco automático"))
     print("  Sigue las instrucciones EN LA VENTANA. ESC aborta.")
     if con_monitor:
@@ -407,11 +410,11 @@ def main() -> None:
     np.savez_compressed(DIR_DATOS / f"persecucion_{sello}.npz",
                         calibracion=calib, persecucion=datos, prediccion=pred,
                         pantalla=np.array(pantalla), modo_mouse=modo_mouse,
-                        canal=canal)
+                        canal=canal, alias=alias)
     DIR_REGISTROS.mkdir(exist_ok=True)
     agregar_csv(DIR_REGISTROS / "sesiones_mirada.csv", {
         "fecha_hora": datetime.now().isoformat(timespec="seconds"),
-        "alias": CONFIG["participante"]["alias"], "canal": canal,
+        "alias": alias, "canal": canal,
         "modo": "mouse" if modo_mouse else "auto", **m,
         "error_calib_px": err_cal, "error_calib_lopo_px": err_lopo,
         **{k: estadisticas[k] for k in ("fps", "tasa_cara", "brillo",
