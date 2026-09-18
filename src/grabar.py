@@ -82,7 +82,15 @@ def registrar_sesion(filas: list[dict]) -> None:
 
 def main() -> None:
     vocabulario = CONFIG["vocabulario"]
-    seleccion = [p.lower() for p in sys.argv[1:]]
+    args = sys.argv[1:]
+    # --nuevas N: graba N muestras NUEVAS por palabra aunque ya se haya
+    # alcanzado el objetivo (sesiones de ampliación del dataset).
+    nuevas = None
+    if "--nuevas" in args:
+        i = args.index("--nuevas")
+        nuevas = int(args[i + 1])
+        del args[i:i + 2]
+    seleccion = [p.lower() for p in args]
     if seleccion:
         vocabulario = [v for v in vocabulario if v["palabra"] in seleccion]
         if not vocabulario:

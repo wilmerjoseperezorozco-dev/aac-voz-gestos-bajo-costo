@@ -58,12 +58,12 @@ MUESTRAS_POR_DEFECTO = 10
 _PUNTOS_OJOS = [468, 33, 133, 473, 362, 263]
 
 
-def crear_detector_cara() -> vision.FaceLandmarker:
+def crear_detector_cara() -> vision.FaceLandmarker | None:
+    """Devuelve None si falta el modelo: la sesión sigue solo con pose."""
     if not MODELO_CARA.exists():
-        raise SystemExit(
-            f"Falta el modelo facial: {MODELO_CARA}\n"
-            "Descárgalo (face_landmarker.task, ~3.7 MB, oficial de Google "
-            "MediaPipe) y guárdalo en esa ruta.")
+        print(f"\n⚠️  Falta {MODELO_CARA.name}: esta sesión graba SOLO pose "
+              "(sin cara). Cuando lo tengas en modelos/, se activa sola.")
+        return None
     opciones = vision.FaceLandmarkerOptions(
         base_options=mp_python.BaseOptions(model_asset_path=str(MODELO_CARA)),
         running_mode=vision.RunningMode.VIDEO,
@@ -72,7 +72,7 @@ def crear_detector_cara() -> vision.FaceLandmarker:
     return vision.FaceLandmarker.create_from_options(opciones)
 
 
-def capturar_pareado(lector: LectorGestos, cara: vision.FaceLandmarker,
+def capturar_pareado(lector: LectorGestos, cara: vision.FaceLandmarker | None,
                      titulo: str):
     """Devuelve (secuencia_pose, blendshapes, ojos, nombres, tasa_cara)."""
     cap = cv2.VideoCapture(lector.indice_camara, cv2.CAP_DSHOW)
@@ -95,13 +95,15 @@ def capturar_pareado(lector: LectorGestos, cara: vision.FaceLandmarker,
                               data=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
             marca_ms = int((time.monotonic() - lector._t0) * 1000)
             res_pose = lector.detector.detect_for_video(imagen, marca_ms)
-            res_cara = cara.detect_for_video(imagen, marca_ms)
+            res_cara = (cara.detect_for_video(imagen, marca_ms)
+                        if cara is not None else None)
 
             rasgos = (lector._rasgos_de_frame(res_pose.pose_landmarks)
                       if res_pose.pose_landmarks else None)
             if rasgos is not None:
                 pose_frames.append(rasgos)
-                if res_cara.face_blendshapes and res_cara.face_landmarks:
+                if (res_cara is not None and res_cara.face_blendshapes
+                        and res_cara.face_landmarks):
                     cats = res_cara.face_blendshapes[0]
                     if not nombres:
                         nombres = [c.category_name for c in cats]
@@ -115,7 +117,7 @@ def capturar_pareado(lector: LectorGestos, cara: vision.FaceLandmarker,
 
             if res_pose.pose_landmarks:
                 lector._dibujar_personas(frame, res_pose.pose_landmarks)
-            if res_cara.face_landmarks:
+            if res_cara is not None and res_cara.face_landmarks:
                 h, w = frame.shape[:2]
                 for i in _PUNTOS_OJOS:
                     p = res_cara.face_landmarks[0][i]
