@@ -8,6 +8,8 @@ persecución, así que las métricas son de generalización, no de ajuste.
 
 from __future__ import annotations
 
+import itertools
+
 import numpy as np
 
 # Índices de la malla facial de 478 puntos (MediaPipe Face Landmarker).
@@ -238,3 +240,57 @@ def resumen_movimiento(t: np.ndarray, y: np.ndarray,
         "vel_p99": float(np.percentile(velocidad, 99)),
         "saltos": int((velocidad > salto_grados_s).sum()),
     }
+
+
+# --------------------------------------------------------------------------
+# Tarea de escalones: el blanco salta entre izquierda / centro / derecha y se
+# sostiene. No necesita calibración: se compara la postura de la cabeza en
+# los tramos "izquierda" contra los de "derecha".
+# --------------------------------------------------------------------------
+
+# Orden fijo (mismo para todas las sesiones, así son comparables): 4 veces
+# izquierda, 4 derecha y 2 centro; nunca dos iguales seguidos.
+SECUENCIA_ESCALONES = ["C", "I", "D", "I", "D", "C", "D", "I", "D", "I"]
+
+
+def analizar_escalones(t: np.ndarray, y: np.ndarray, escalones: list,
+                       hold_s: float, analiza_desde_s: float) -> dict:
+    """escalones: lista de (t_inicio, lado) con lado 'I', 'C' o 'D'. De cada
+    tramo se toma la media de y desde `analiza_desde_s` (para dejar tiempo de
+    moverse) hasta el final del tramo. Compara los tramos I contra los D con
+    una prueba de permutación exacta (sin supuestos de distribución; no
+    depende del signo de los ejes ni de calibración).
+
+    Con 4 tramos I y 4 D, la separación completa por azar tiene p = 2/70."""
+    medias: dict[str, list[float]] = {"I": [], "C": [], "D": []}
+    estabilidad = []
+    for t0, lado in escalones:
+        m = (t >= t0 + analiza_desde_s) & (t < t0 + hold_s)
+        if m.sum() >= 5:
+            medias[lado].append(float(y[m].mean()))
+            estabilidad.append(float(y[m].std()))
+    izq, der = np.array(medias["I"]), np.array(medias["D"])
+    salida = {"n_izq": len(izq), "n_der": len(der), "n_centro": len(medias["C"]),
+              "media_izq": float(izq.mean()) if len(izq) else float("nan"),
+              "media_der": float(der.mean()) if len(der) else float("nan"),
+              "media_centro": float(np.mean(medias["C"])) if medias["C"] else float("nan"),
+              "estabilidad_media": float(np.mean(estabilidad)) if estabilidad else float("nan"),
+              "diferencia": float("nan"), "d_cohen": float("nan"),
+              "separacion_completa": False, "p_permutacion": float("nan")}
+    if len(izq) < 2 or len(der) < 2:
+        return salida
+    todos = np.concatenate([izq, der])
+    observada = abs(izq.mean() - der.mean())
+    extremas = 0
+    combos = list(itertools.combinations(range(len(todos)), len(izq)))
+    for c in combos:
+        resto = np.delete(todos, list(c))
+        if abs(todos[list(c)].mean() - resto.mean()) >= observada - 1e-12:
+            extremas += 1
+    sd = float(np.sqrt((izq.var(ddof=1) + der.var(ddof=1)) / 2))
+    salida.update(
+        diferencia=float(izq.mean() - der.mean()),
+        d_cohen=float(observada / sd) if sd > 1e-9 else float("inf"),
+        separacion_completa=bool(izq.min() > der.max() or izq.max() < der.min()),
+        p_permutacion=extremas / len(combos))
+    return salida

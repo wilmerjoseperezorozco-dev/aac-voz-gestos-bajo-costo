@@ -24,6 +24,13 @@ versionado según [SemVer](https://semver.org/lang/es/).
   la evalúa sin que el modelo la haya visto. `--puntos` agrega 9 puntos
   quietos solo para comparar. Nuevas métricas: relación cruda con el
   blanco (sin calibración) y validación cruzada por bloques.
+- Tarea de escalones con la cabeza (`escalones_cabeza.py`, lanzador 15): tres
+  círculos (izquierda, centro, derecha), uno se ilumina y se sostiene; la
+  persona gira hacia él. Sin calibración: prueba de permutación exacta de la
+  postura (yaw) en los tramos izquierda contra derecha. Pensada como elección
+  discreta ("girar y sostener"), más cercana a un gesto que un seguimiento.
+- Diagnóstico de tipo de movimiento (ajuste al ritmo del blanco, bandas de
+  frecuencia, giros bruscos) y `--nota` para dejar una observación por sesión.
 - `--alias` para registrar sesiones de control aparte, el alias visible en
   la pantalla de inicio, y `lanzadores/14_Persecucion_Control.bat` (CTRL1).
 - `grabar.py --nuevas N`: graba N muestras nuevas por palabra aunque ya

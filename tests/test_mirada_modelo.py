@@ -139,3 +139,35 @@ def test_resumen_movimiento_distingue_suave_de_brusco():
     a, b = resumen_movimiento(tt, suave), resumen_movimiento(tt, brusco)
     assert a["pot_menor_015hz"] > 0.9 and a["saltos"] == 0
     assert b["saltos"] >= 1 and a["saltos"] == 0
+
+
+def _serie_escalones(rng, hold_s, mov_izq, mov_der, ruido=0.4):
+    from mirada_modelo import SECUENCIA_ESCALONES
+
+    fps = 30
+    tt = np.arange(0, hold_s * len(SECUENCIA_ESCALONES), 1 / fps)
+    y = np.zeros(len(tt))
+    escalones = []
+    for i, lado in enumerate(SECUENCIA_ESCALONES):
+        t0 = i * hold_s
+        escalones.append((t0, lado))
+        nivel = {"I": mov_izq, "D": mov_der, "C": 0.0}[lado]
+        y[(tt >= t0 + 1.0) & (tt < t0 + hold_s)] = nivel     # se mueve y sostiene
+    return tt, y + rng.normal(0, ruido, len(tt)), escalones
+
+
+def test_escalones_detecta_giro_sostenido_hacia_cada_lado():
+    from mirada_modelo import analizar_escalones
+
+    tt, y, esc = _serie_escalones(np.random.default_rng(10), 5.0, +15.0, -15.0)
+    r = analizar_escalones(tt, y, esc, 5.0, 2.0)
+    assert r["n_izq"] == 4 and r["n_der"] == 4 and r["separacion_completa"]
+    assert abs(r["p_permutacion"] - 2 / 70) < 1e-9 and r["diferencia"] > 25
+
+
+def test_escalones_sin_respuesta_no_da_separacion_ni_significancia():
+    from mirada_modelo import analizar_escalones
+
+    tt, y, esc = _serie_escalones(np.random.default_rng(11), 5.0, 0.0, 0.0, ruido=2.0)
+    r = analizar_escalones(tt, y, esc, 5.0, 2.0)
+    assert r["p_permutacion"] > 0.2

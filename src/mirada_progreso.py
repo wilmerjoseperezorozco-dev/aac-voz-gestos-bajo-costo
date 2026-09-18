@@ -143,8 +143,32 @@ def gestos_cara() -> None:
     print("  (muestras con cara <80% suelen ser manos tapando el rostro o poca luz)")
 
 
+def escalones() -> None:
+    filas = leer("sesiones_escalones.csv")
+    print()
+    print("=" * 100)
+    print("  ESCALONES (girar hacia el círculo iluminado y sostener)")
+    print("=" * 100)
+    if not filas:
+        print("  Aún no hay sesiones. Corre lanzadores\\15_Escalones_Cabeza.bat")
+        return
+    print(f"  {'fecha':16s} {'quien':6s} {'izq°':>7s} {'der°':>7s} {'dif°':>7s} {'p':>6s} "
+          f"{'separa':>7s} {'estab°':>7s} {'cara':>5s}  nota")
+    for f in filas:
+        sep = "SÍ" if f.get("separacion_completa") == "True" else "no"
+        tasa = num(f, "tasa_cara")
+        print(f"  {f['fecha_hora'][:16].replace('T', ' '):16s} {(f.get('alias') or '?'):6s} "
+              f"{fmt(num(f, 'media_izq'), '{:+.1f}'):>7s} {fmt(num(f, 'media_der'), '{:+.1f}'):>7s} "
+              f"{fmt(num(f, 'diferencia'), '{:+.1f}'):>7s} {fmt(num(f, 'p_permutacion'), '{:.3f}'):>6s} "
+              f"{sep:>7s} {fmt(num(f, 'estabilidad_media'), '{:.1f}'):>7s} "
+              f"{fmt(None if tasa is None else tasa * 100, '{:.0f}%'):>5s}  {f.get('nota', '')}")
+    print("  (separa = los 4 tramos de un lado quedan todos a un lado de los 4 del otro; "
+          "con 4 y 4, p mínimo = 0.029)")
+
+
 def main() -> None:
     persecucion()
+    escalones()
     gestos_cara()
 
 
