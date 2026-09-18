@@ -7,6 +7,7 @@ Uso:
     py -3.12 src/persecucion_mirada.py --ventana   # blanco en ventana, no pantalla completa
     py -3.12 src/persecucion_mirada.py --sin-monitor
     py -3.12 src/persecucion_mirada.py --puntos    # agrega 9 puntos quietos (comparación)
+    py -3.12 src/persecucion_mirada.py --nota "miró al operador, hizo el gesto de no"
     py -3.12 src/persecucion_mirada.py --alias CTRL1   # sesión de control (no es YP)
 
 Canal cabeza (por defecto): la observación de campo es que a YP le cuesta
@@ -299,6 +300,7 @@ def main() -> None:
         duracion = float(args[args.index("--seg") + 1])
     asentar, grabar = (0.3, 0.5) if rapido else (par["asentar"], par["grabar"])
     con_puntos = "--puntos" in args
+    nota = args[args.index("--nota") + 1] if "--nota" in args else ""
 
     pantalla = (800, 450) if ventana else tamano_pantalla()
     cara = crear_detector()
@@ -448,7 +450,7 @@ def main() -> None:
     DIR_REGISTROS.mkdir(exist_ok=True)
     agregar_csv(DIR_REGISTROS / "sesiones_mirada.csv", {
         "fecha_hora": datetime.now().isoformat(timespec="seconds"),
-        "alias": alias, "canal": canal,
+        "alias": alias, "canal": canal, "nota": nota,
         "modo": "mouse" if modo_mouse else "auto",
         "calibracion": "puntos+seguimiento" if con_puntos else "seguimiento",
         **m, "error_calib_cv_px": err_cv,
