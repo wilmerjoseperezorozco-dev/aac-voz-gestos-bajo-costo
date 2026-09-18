@@ -227,9 +227,44 @@ teórica previa que no existió.
   canal opcional. Herramientas nuevas: monitor del operador con avisos
   de entorno, métricas de entorno por sesión y tendencia entre sesiones
   (`mirada_progreso.py`). Ver `CHANGELOG.md`.
-- **Pendiente:** control positivo del instrumento; primera sesión del
-  canal cabeza (aún sin datos); gestos en orden aleatorio para separar
-  clase de deriva temporal.
+- **Pendiente:** control positivo del instrumento (ver la entrada
+  siguiente); primera sesión del canal cabeza con la participante;
+  gestos en orden aleatorio para separar clase de deriva temporal.
+
+## 2026-09-18 — Control positivo del canal cabeza (investigador, CTRL1)
+
+- **Objetivo:** validar el instrumento con una persona sin dificultad
+  motora antes de interpretar cualquier resultado de la participante.
+- **Sesión:** una sola, del investigador principal (alias CTRL1), canal
+  cabeza, ventana de 800x450, 30 fps, cara detectada 100% del tiempo y
+  sin avisos de entorno.
+- **La cabeza sigue el blanco:** en las fijaciones de la calibración, el
+  yaw se relaciona con la posición-x del punto (r = -0.76) y el pitch con
+  la posición-y (r = +0.95); en la persecución, yaw contra blanco-x da
+  r = -0.87 y pitch contra blanco-y r = +0.86. El instrumento capta el
+  canal.
+- **Hallazgo de calibración:** 7 de los 9 puntos salieron estables y
+  consistentes. El primero (no se estabilizó durante la captura) y el
+  último (quedó quieto cerca del centro, sin llegar al punto) no fueron
+  alcanzados. Con los seis rasgos y todos los puntos, la persecución quedó
+  53% peor que apuntar siempre al centro; con solo yaw + pitch, +10% mejor;
+  descartando esos dos puntos atípicos (criterio que usa solo datos de
+  calibración), error de 21% de la diagonal, +20% frente al centro y
+  correlaciones de 0.85 (x) y 0.87 (y).
+- **Cambios derivados:** el canal cabeza regresa solo con yaw + pitch; por
+  punto se usa la ventana más estable de la captura; se descartan hasta 2
+  puntos solo si son claramente atípicos, y el script avisa cuáles repetir
+  (ver `CHANGELOG.md`).
+- **Limitaciones:** el criterio de descarte y la elección de rasgos se
+  afinaron con esta misma sesión, así que falta confirmarlos con sesiones
+  nuevas antes de darlos por buenos. Un solo control no es una referencia
+  normativa. Incluso con un control sano el mapeo lineal supera por poco
+  la línea base: es el techo de este montaje (9 puntos, ventana pequeña,
+  webcam), útil para leer los resultados de la participante en relación
+  con él.
+- **Siguiente:** segunda sesión de control con el script actualizado
+  (confirmación con datos nuevos), control del canal mirada, y luego la
+  primera sesión del canal cabeza con la participante.
 
 ## Próximos hallazgos a documentar
 
