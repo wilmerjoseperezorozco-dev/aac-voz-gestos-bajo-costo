@@ -443,7 +443,8 @@ def main() -> None:
                         calibracion=calib, persecucion=datos, prediccion=pred,
                         corte_t=t_corte, pantalla=np.array(pantalla),
                         modo_mouse=modo_mouse, canal=canal, alias=alias,
-                        columnas_modelo=np.array(cols_m))
+                        columnas_modelo=np.array(cols_m),
+                        periodos=np.array(par["periodos"]))
     DIR_REGISTROS.mkdir(exist_ok=True)
     agregar_csv(DIR_REGISTROS / "sesiones_mirada.csv", {
         "fecha_hora": datetime.now().isoformat(timespec="seconds"),

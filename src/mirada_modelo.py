@@ -195,3 +195,46 @@ def error_cv_bloques(X: np.ndarray, Y: np.ndarray, k: int = 4,
         errores.append(np.linalg.norm(predecir(modelo, X[fuera]) - Y[fuera],
                                       axis=1).mean())
     return float(np.mean(errores))
+
+
+# --------------------------------------------------------------------------
+# Tipo de movimiento: ¿sigue el ritmo del blanco, o es otra cosa?
+# --------------------------------------------------------------------------
+
+def r2_armonico(t: np.ndarray, y: np.ndarray, periodo: float) -> float:
+    """Fracción de la varianza de y explicada por una sinusoide del período
+    del blanco (cualquier fase). ~1 si la señal sigue el ritmo del blanco;
+    ~0 si no tiene nada que ver, sin depender de calibración, signo ni fase."""
+    w = 2 * np.pi / periodo
+    diseno = np.column_stack([np.sin(w * t), np.cos(w * t), np.ones_like(t)])
+    coef, *_ = np.linalg.lstsq(diseno, y, rcond=None)
+    return float(1 - (y - diseno @ coef).var() / (y.var() + 1e-12))
+
+
+def resumen_movimiento(t: np.ndarray, y: np.ndarray,
+                       salto_grados_s: float = 60.0) -> dict:
+    """Descripción del movimiento de una señal angular: reparto de potencia
+    por bandas de frecuencia, frecuencia dominante y velocidades. Un
+    seguimiento voluntario suave se concentra por debajo de ~0.3 Hz con
+    velocidades bajas; movimientos bruscos o irregulares llenan bandas más
+    altas. Solo descriptivo: no distingue por sí solo el origen del movimiento."""
+    fs = 1.0 / float(np.median(np.diff(t)))
+    y0 = y - y.mean()
+    potencia = np.abs(np.fft.rfft(y0 * np.hanning(len(y0)))) ** 2
+    f = np.fft.rfftfreq(len(y0), 1 / fs)
+    total = potencia[f > 0.02].sum() + 1e-12
+
+    def fraccion(a: float, b: float) -> float:
+        return float(potencia[(f >= a) & (f < b)].sum() / total)
+
+    banda = (f > 0.02) & (f < 2)
+    velocidad = np.abs(np.gradient(y, t))
+    return {
+        "frecuencia_pico_hz": float(f[banda][np.argmax(potencia[banda])]),
+        "pot_menor_015hz": fraccion(0.02, 0.15),
+        "pot_015_05hz": fraccion(0.15, 0.5),
+        "pot_05_3hz": fraccion(0.5, 3.0),
+        "vel_media": float(velocidad.mean()),
+        "vel_p99": float(np.percentile(velocidad, 99)),
+        "saltos": int((velocidad > salto_grados_s).sum()),
+    }

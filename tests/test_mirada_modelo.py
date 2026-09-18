@@ -114,3 +114,28 @@ def test_error_cv_bloques_bajo_con_relacion_estable_y_alto_con_ruido():
     X_bueno = np.column_stack([-(Y[:, 0] - 960) / 40.0, (Y[:, 1] - 540) / 40.0])         + rng.normal(0, 0.2, (len(tt), 2))
     X_ruido = rng.normal(size=(len(tt), 2))
     assert error_cv_bloques(X_bueno, Y) < 0.3 * error_cv_bloques(X_ruido, Y)
+
+
+def test_r2_armonico_alto_si_sigue_el_ritmo_y_bajo_si_no():
+    from mirada_modelo import r2_armonico
+
+    rng = np.random.default_rng(9)
+    tt = np.arange(0, 40, 1 / 30)
+    sigue = 10 * np.sin(2 * np.pi * tt / 14 + 0.7) + rng.normal(0, 0.5, len(tt))
+    quieto_con_saltos = np.full(len(tt), 5.0) + rng.normal(0, 0.3, len(tt))
+    quieto_con_saltos[300:330] += 25.0                       # un movimiento brusco
+    assert r2_armonico(tt, sigue, 14.0) > 0.9
+    assert r2_armonico(tt, quieto_con_saltos, 14.0) < 0.2
+
+
+def test_resumen_movimiento_distingue_suave_de_brusco():
+    from mirada_modelo import resumen_movimiento
+
+    tt = np.arange(0, 40, 1 / 30)
+    suave = 10 * np.sin(2 * np.pi * tt / 14)
+    brusco = np.zeros(len(tt))
+    brusco[300:306] = np.linspace(0, 30, 6)                   # ~150 grados/s
+    brusco[306:] = 30.0
+    a, b = resumen_movimiento(tt, suave), resumen_movimiento(tt, brusco)
+    assert a["pot_menor_015hz"] > 0.9 and a["saltos"] == 0
+    assert b["saltos"] >= 1 and a["saltos"] == 0

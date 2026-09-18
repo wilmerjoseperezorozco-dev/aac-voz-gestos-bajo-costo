@@ -32,9 +32,23 @@ RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ / "src"))
 
 from mirada_modelo import (ajustar_ridge, metricas_persecucion,  # noqa: E402
-                           predecir, suavizar, _pearson)
+                           predecir, r2_armonico, resumen_movimiento,
+                           suavizar, _pearson)
 
 COLS_MODELO = {"cabeza": [0, 1], "ojos": [0, 1, 2, 3]}
+# Períodos del blanco automático por canal (sesiones anteriores a guardarlos).
+PERIODOS = {"cabeza": (14.0, 20.0), "ojos": (8.0, 12.0)}
+NIVELES = " ▁▂▃▄▅▆▇█"
+
+
+def sparkline(t: np.ndarray, y: np.ndarray) -> str:
+    """Media por segundo dibujada con bloques; escala propia de la sesión."""
+    medias = np.array([y[(t >= s) & (t < s + 1)].mean() if ((t >= s) & (t < s + 1)).any()
+                       else np.nan for s in range(int(t.max()))])
+    medias = np.nan_to_num(medias, nan=np.nanmean(medias))
+    lo, hi = np.percentile(medias, 2), np.percentile(medias, 98)
+    escala = np.clip((medias - lo) / (hi - lo + 1e-9), 0, 0.999)
+    return "".join(NIVELES[int(v * 9)] for v in escala)
 
 
 def crudo(canal: str, F: np.ndarray):
@@ -79,6 +93,24 @@ def main() -> None:
           f"{y_c.max():.2f}{unidad}  (desv. {y_c.std():.2f})")
     if canal == "ojos":
         print("    (con el iris, rangos muy chicos suelen indicar que casi no hay movimiento ocular)")
+
+    print("\n[2b] TIPO DE MOVIMIENTO")
+    mov = resumen_movimiento(t, x_c)
+    print(f"    potencia de {etiqueta_x} por banda: <0.15 Hz {mov['pot_menor_015hz']:.0%} | "
+          f"0.15-0.5 Hz {mov['pot_015_05hz']:.0%} | 0.5-3 Hz {mov['pot_05_3hz']:.0%}   "
+          f"(pico {mov['frecuencia_pico_hz']:.2f} Hz)")
+    if canal == "cabeza":
+        print(f"    velocidad del giro: media {mov['vel_media']:.1f} °/s, p99 "
+              f"{mov['vel_p99']:.0f} °/s, giros bruscos (>60 °/s): {mov['saltos']}")
+    modo_mouse = bool(z["modo_mouse"]) if "modo_mouse" in z.files else False
+    if not modo_mouse:
+        px_, py_ = (z["periodos"] if "periodos" in z.files else PERIODOS[canal])
+        print(f"    ajuste al ritmo del blanco (1 = lo sigue, 0 = nada que ver): "
+              f"{etiqueta_x} {r2_armonico(t, x_c, float(px_)):.2f} (período {float(px_):.0f} s)   "
+              f"{etiqueta_y} {r2_armonico(t, y_c, float(py_)):.2f} (período {float(py_):.0f} s)")
+        print("    (un seguimiento suave da ~0.9 y casi toda la potencia bajo 0.15 Hz;")
+        print("     una postura casi fija con movimientos bruscos da un ajuste bajo)")
+    print(f"    {etiqueta_x} por segundo: {sparkline(t, x_c)}")
 
     corte = float(t.max()) / 2
     A, B = per[t <= corte], per[t > corte]
