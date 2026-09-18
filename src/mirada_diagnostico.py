@@ -28,7 +28,8 @@ if sys.stdout is not None and sys.stdout.encoding and sys.stdout.encoding.lower(
 RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ / "src"))
 
-from mirada_modelo import (ajustar_ridge, metricas_persecucion,  # noqa: E402
+from mirada_modelo import (ajustar_ridge, ajustar_robusto,  # noqa: E402
+                           metricas_persecucion,
                            predecir, suavizar, _pearson)
 
 
@@ -97,13 +98,20 @@ def main() -> None:
     print("\n[3] PERSECUCIÓN — modelos simples contra 'apuntar al centro'")
     max_ret = 2.0 if canal == "cabeza" else 1.0
     for nombre, cols in modelos:
-        mod = ajustar_ridge(Fc[:, cols], Yc)
-        m = metricas_persecucion(t, blanco, suavizar(predecir(mod, F[:, cols]), 5),
-                                 pant, max_ret)
-        print(f"    {nombre:30s} error {m['rmse_px']:4.0f} px ({m['rmse_pct_diagonal']:.0f}%)  "
-              f"mejora vs centro {m['mejora_vs_constante']:+.0%}  "
-              f"r_x={m['r_x']:+.2f} r_y={m['r_y']:+.2f}  "
-              f"retardo x={m['retardo_x_ms']:.0f} ms")
+        variantes = [("", ajustar_ridge(Fc[:, cols], Yc), [])]
+        mod_r, excluidos, _ = ajustar_robusto(Fc[:, cols], Yc)
+        if excluidos:
+            variantes.append((" + robusto", mod_r, excluidos))
+        for sufijo, mod, exc in variantes:
+            m = metricas_persecucion(t, blanco, suavizar(predecir(mod, F[:, cols]), 5),
+                                     pant, max_ret)
+            print(f"    {nombre + sufijo:30s} error {m['rmse_px']:4.0f} px ({m['rmse_pct_diagonal']:.0f}%)  "
+                  f"mejora vs centro {m['mejora_vs_constante']:+.0%}  "
+                  f"r_x={m['r_x']:+.2f} r_y={m['r_y']:+.2f}  "
+                  f"retardo x={m['retardo_x_ms']:.0f} ms")
+            if exc:
+                print(f"       descarta puntos de calibración: "
+                      f"{[(int(a), int(b)) for a, b in exc]} (atípicos: no se alcanzaron)")
     print("    (mejora > 0 = supera a apuntar siempre al centro de la trayectoria)")
 
 

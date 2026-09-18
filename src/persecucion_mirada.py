@@ -52,10 +52,11 @@ RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ / "src"))
 
 import monitor_operador as mon  # noqa: E402
-from mirada_modelo import (ajustar_ridge, angulos_cabeza,  # noqa: E402
+from mirada_modelo import (ajustar_robusto, angulos_cabeza,  # noqa: E402
                            error_calibracion_lopo, metricas_persecucion,
                            predecir, puntos_calibracion, rasgos_cabeza,
-                           rasgos_mirada, suavizar, trayectoria_auto)
+                           rasgos_mirada, suavizar, trayectoria_auto,
+                           ventana_mas_estable)
 
 CONFIG = json.loads((RAIZ / "config.json").read_text(encoding="utf-8"))
 MODELO_CARA = RAIZ / "modelos" / "face_landmarker.task"
@@ -65,13 +66,25 @@ VENTANA = "Persecucion"
 MIN_FRAMES = 100
 _T0 = time.monotonic()
 
-# Tiempos por canal: la cabeza se mueve más lento que los ojos.
+# Por canal: la cabeza se mueve más lento que los ojos. `dwell` es cuánto se
+# muestra cada punto de calibración; de ese tramo se usa solo la ventana más
+# estable (`ventana_s`). `cols_modelo` son los rasgos que entran a la
+# regresión: pocos y directos (yaw+pitch; iris), porque con menos parámetros
+# la calibración de 9 puntos generaliza mejor.
 PARAMETROS = {
-    "cabeza": dict(asentar=2.0, grabar=1.5, duracion=40.0,
-                   periodos=(14.0, 20.0), max_retardo=2.0, n_rasgos=6),
-    "ojos": dict(asentar=1.0, grabar=1.5, duracion=24.0,
-                 periodos=(8.0, 12.0), max_retardo=1.0, n_rasgos=15),
+    "cabeza": dict(dwell=4.0, ventana_s=1.0, duracion=40.0,
+                   periodos=(14.0, 20.0), max_retardo=2.0, n_rasgos=6,
+                   cols_estab=[0, 1], cols_modelo=[0, 1]),
+    "ojos": dict(dwell=2.5, ventana_s=1.0, duracion=24.0,
+                 periodos=(8.0, 12.0), max_retardo=1.0, n_rasgos=15,
+                 cols_estab=[0, 1, 2, 3], cols_modelo=[0, 1, 2, 3]),
 }
+NOMBRES_FILA, NOMBRES_COL = ("arriba", "centro", "abajo"), ("izq", "centro", "der")
+
+
+def nombre_punto(i: int) -> str:
+    """Nombre legible del punto de calibración i (1-9, en orden de lectura)."""
+    return f"{i} ({NOMBRES_FILA[(i - 1) // 3]}-{NOMBRES_COL[(i - 1) % 3]})"
 
 
 def tamano_pantalla() -> tuple[int, int]:
@@ -288,7 +301,7 @@ def main() -> None:
     duracion = 4.0 if rapido else par["duracion"]
     if "--seg" in args:
         duracion = float(args[args.index("--seg") + 1])
-    asentar, grabar = (0.3, 0.5) if rapido else (par["asentar"], par["grabar"])
+    dwell, ventana_s = (1.2, 0.5) if rapido else (par["dwell"], par["ventana_s"])
 
     pantalla = (800, 450) if ventana else tamano_pantalla()
     cara = crear_detector()
@@ -332,27 +345,49 @@ def main() -> None:
         if not sin_espera:
             esperar_espacio(hilo, pantalla,
                             "Punto verde = cara detectada. ESPACIO para empezar")
-        calib = []
-        for i, (px, py) in enumerate(puntos_calibracion(pantalla), 1):
-            f, _ = correr_fase(hilo, pantalla, asentar + grabar,
+        puntos = puntos_calibracion(pantalla)
+        segmentos = []
+        for i, (px, py) in enumerate(puntos, 1):
+            f, _ = correr_fase(hilo, pantalla, dwell,
                                lambda t, px=px, py=py: (px, py),
-                               f"{verbo}  {i}/9", grabar_desde=asentar)
-            if len(f):
-                calib.append(f)
+                               f"{verbo}  {i}/9")
+            segmentos.append(f)
+        cols_e, cols_m = par["cols_estab"], par["cols_modelo"]
+        elegidos, estab = [], []
+        for f in segmentos:
+            if len(f) == 0:
+                continue
+            n_ventana = max(10, int(round(len(f) * ventana_s / dwell)))
+            v, sd = ventana_mas_estable(f, [3 + c for c in cols_e], n_ventana)
+            elegidos.append(v)
+            estab.append(sd)
         vacio = np.empty((0, 3 + par["n_rasgos"]))
-        calib = np.vstack(calib) if calib else vacio
+        calib = np.vstack(elegidos) if elegidos else vacio
         min_frames = 30 if rapido else MIN_FRAMES
         if len(calib) < min_frames:
             print(f"\n❌ Solo {len(calib)} frames de calibración con cara "
                   "válida. Mejor luz y la cara centrada frente a la cámara.")
             return
-        modelo = ajustar_ridge(calib[:, 3:], calib[:, 1:3])
+        Xc, Yc = calib[:, 3:][:, cols_m], calib[:, 1:3]
+        modelo, excluidos, mascara = ajustar_robusto(Xc, Yc)
+        indice = {tuple(float(round(v)) for v in pt): i
+                  for i, pt in enumerate(puntos, 1)}
+        idx_excluidos = sorted(indice[e] for e in excluidos if e in indice)
         err_cal = float(np.sqrt(np.mean(np.linalg.norm(
-            predecir(modelo, calib[:, 3:]) - calib[:, 1:3], axis=1) ** 2)))
-        err_lopo = error_calibracion_lopo(calib[:, 3:], calib[:, 1:3])
-        print(f"\n  Calibración: {len(calib)} frames | error de ajuste "
+            predecir(modelo, Xc[mascara]) - Yc[mascara], axis=1) ** 2)))
+        err_lopo = error_calibracion_lopo(Xc[mascara], Yc[mascara])
+        estab_media = float(np.nanmean(estab)) if estab else float("nan")
+        print(f"\n  Calibración: {int(mascara.sum())} frames en "
+              f"{9 - len(idx_excluidos)} de 9 puntos | error de ajuste "
               f"{err_cal:.0f} px (optimista) | dejando un punto fuera "
-              f"{err_lopo:.0f} px")
+              f"{err_lopo:.0f} px | estabilidad {estab_media:.2f}")
+        if idx_excluidos:
+            print("  ⚠ Puntos descartados de la calibración (no se alcanzaron o "
+                  "no quedaron estables):")
+            for i in idx_excluidos:
+                print(f"      · {nombre_punto(i)}")
+            print("    Pídele a YP que llegue con calma a cada punto y que espere "
+                  "a que se estabilice; repite la sesión si son varios.")
 
         centro = (pantalla[0] / 2, pantalla[1] / 2)
         correr_fase(hilo, pantalla, 1.5 if rapido else 3.0, lambda t: centro,
@@ -380,7 +415,7 @@ def main() -> None:
               f"(de {total}). No alcanza para analizar.")
         return
     t, blanco = datos[:, 0], datos[:, 1:3]
-    pred = suavizar(predecir(modelo, datos[:, 3:]), 5)
+    pred = suavizar(predecir(modelo, datos[:, 3:][:, cols_m]), 5)
     m = metricas_persecucion(t, blanco, pred, pantalla, par["max_retardo"])
 
     print("\n" + "=" * 60)
@@ -410,13 +445,17 @@ def main() -> None:
     np.savez_compressed(DIR_DATOS / f"persecucion_{sello}.npz",
                         calibracion=calib, persecucion=datos, prediccion=pred,
                         pantalla=np.array(pantalla), modo_mouse=modo_mouse,
-                        canal=canal, alias=alias)
+                        canal=canal, alias=alias,
+                        puntos_excluidos=np.array(idx_excluidos),
+                        columnas_modelo=np.array(cols_m))
     DIR_REGISTROS.mkdir(exist_ok=True)
     agregar_csv(DIR_REGISTROS / "sesiones_mirada.csv", {
         "fecha_hora": datetime.now().isoformat(timespec="seconds"),
         "alias": alias, "canal": canal,
         "modo": "mouse" if modo_mouse else "auto", **m,
         "error_calib_px": err_cal, "error_calib_lopo_px": err_lopo,
+        "estabilidad_calib": estab_media,
+        "puntos_excluidos": ";".join(str(i) for i in idx_excluidos),
         **{k: estadisticas[k] for k in ("fps", "tasa_cara", "brillo",
                                         "ancho_cara_pct", "pct_frames_con_aviso")}})
     print(f"\n  Guardado en data_mirada/persecucion_{sello}.npz")

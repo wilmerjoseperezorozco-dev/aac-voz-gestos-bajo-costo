@@ -8,6 +8,8 @@ persecución, así que las métricas son de generalización, no de ajuste.
 
 from __future__ import annotations
 
+import itertools
+
 import numpy as np
 
 # Índices de la malla facial de 478 puntos (MediaPipe Face Landmarker).
@@ -176,3 +178,72 @@ def error_calibracion_lopo(X: np.ndarray, Y: np.ndarray,
         errores.append(np.linalg.norm(predecir(modelo, X[fuera]) - Y[fuera],
                                       axis=1).mean())
     return float(np.mean(errores)) if errores else float("nan")
+
+
+# --------------------------------------------------------------------------
+# Calibración robusta: ventana más estable y descarte de puntos inconsistentes
+# --------------------------------------------------------------------------
+
+def _mascara_puntos(Y: np.ndarray, puntos) -> np.ndarray:
+    claves = np.round(Y, 0)
+    mascara = np.zeros(len(Y), dtype=bool)
+    for p in puntos:
+        mascara |= np.all(claves == np.array(p), axis=1)
+    return mascara
+
+
+def _rmse(modelo, X: np.ndarray, Y: np.ndarray) -> float:
+    return float(np.sqrt(np.mean(
+        np.linalg.norm(predecir(modelo, X) - Y, axis=1) ** 2)))
+
+
+def ajustar_robusto(X: np.ndarray, Y: np.ndarray, lam: float = 1e-2,
+                    max_excluir: int = 2, factor_atipico: float = 3.0,
+                    mejora_minima: float = 0.7):
+    """Ajusta el ridge probando qué subconjunto de puntos de calibración es
+    más consistente (se busca entre todos los que quitan hasta
+    `max_excluir` puntos; nunca quedan menos de 5). Un descarte se acepta
+    solo si (a) el error de los puntos que se quedan baja a <= mejora_minima
+    x el del ajuste con todos y (b) los puntos quitados quedan >=
+    factor_atipico veces peor que los que se quedan bajo ese ajuste: es
+    decir, si son claramente atípicos y no simple ruido.
+
+    Solo usa datos de calibración (nunca la persecución).
+    Devuelve (modelo, puntos_excluidos, mascara_de_frames_usados)."""
+    claves = np.round(Y, 0)
+    puntos = [tuple(float(v) for v in p) for p in np.unique(claves, axis=0)]
+    todos = ajustar_ridge(X, Y, lam)
+    base = _rmse(todos, X, Y)
+    mejor = (todos, [], np.ones(len(X), dtype=bool))
+    for d in range(min(max_excluir, len(puntos) - 5), 0, -1):
+        candidato = None
+        for fuera in itertools.combinations(puntos, d):
+            quitar = _mascara_puntos(Y, fuera)
+            modelo = ajustar_ridge(X[~quitar], Y[~quitar], lam)
+            dentro = _rmse(modelo, X[~quitar], Y[~quitar])
+            afuera = _rmse(modelo, X[quitar], Y[quitar])
+            if candidato is None or dentro < candidato[0]:
+                candidato = (dentro, afuera, modelo, list(fuera), ~quitar)
+        dentro, afuera, modelo, fuera, mascara = candidato
+        if (dentro <= mejora_minima * base
+                and afuera >= factor_atipico * max(dentro, 1e-9)):
+            return modelo, fuera, mascara
+    return mejor
+
+
+def ventana_mas_estable(frames: np.ndarray, columnas: list[int],
+                        n_ventana: int) -> tuple[np.ndarray, float]:
+    """Elige, dentro de la captura de un punto, la ventana de n_ventana
+    frames con menor variación de los rasgos `columnas` (posición estable
+    de la cabeza/ojos). Solo mira estabilidad, nunca la posición del
+    blanco. Devuelve (frames_elegidos, desviación_media)."""
+    if len(frames) == 0:
+        return frames, float("nan")
+    if len(frames) <= n_ventana:
+        return frames, float(frames[:, columnas].std(axis=0).mean())
+    mejor, mejor_sd = 0, np.inf
+    for i in range(len(frames) - n_ventana + 1):
+        sd = float(frames[i:i + n_ventana][:, columnas].std(axis=0).mean())
+        if sd < mejor_sd:
+            mejor, mejor_sd = i, sd
+    return frames[mejor:mejor + n_ventana], mejor_sd

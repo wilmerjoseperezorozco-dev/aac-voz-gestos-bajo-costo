@@ -19,6 +19,11 @@ versionado según [SemVer](https://semver.org/lang/es/).
 - Métricas de entorno por sesión y tendencia entre sesiones
   (`mirada_progreso.py`); diagnóstico reproducible por sesión
   (`mirada_diagnostico.py`).
+- Calibración robusta de la persecución: por punto se usa la ventana más
+  estable de la captura y se descartan hasta 2 de los 9 puntos cuando son
+  claramente atípicos (la persona no llegó al punto), usando solo datos de
+  calibración. El canal cabeza regresa solo con yaw + pitch. Opción
+  `--alias` para registrar sesiones de control aparte.
 - `grabar.py --nuevas N`: graba N muestras nuevas por palabra aunque ya
   se haya alcanzado el objetivo de `config.json`.
 
