@@ -199,6 +199,38 @@ reales de YP). Esta distinción debe mantenerse explícita en cualquier
 documento formal que las cite, para no sugerir una fundamentación
 teórica previa que no existió.
 
+## 2026-09-18 — Canal de puntero: de la mirada a la cabeza
+
+- **Pregunta:** ¿puede la webcam servir de canal de puntero (seguir un
+  blanco en pantalla) para la participante, y con qué señal?
+- **Observación de campo (informal, del investigador principal; no es
+  una evaluación clínica):** a la participante le cuesta mover los ojos
+  para seguir un estímulo y lo sigue moviendo la cabeza. Se había visto
+  antes, con el dedo del investigador como estímulo, y ella lo confirmó.
+- **Primera sesión, canal mirada (iris), una sola sesión:** el error
+  medio fue 37% de la diagonal de pantalla, peor que apuntar siempre al
+  centro (-42%). En las fijaciones (calibración) la relación entre la
+  posición del iris y la del punto fue r = -0.09, y el giro de cabeza
+  varió entre puntos unas 3 veces más que el iris (desviación 0.103 vs
+  0.031). Coincide con la observación de campo, pero el instrumento aún
+  no está validado: falta un control positivo con una persona sin
+  dificultad ocular en las mismas condiciones.
+- **Canal facial en los gestos (30 muestras, una sesión):** con solo
+  rasgos de cara y ojos, 1-NN con LOOCV acertó 25/30 = 83.3% (IC 95%
+  Clopper-Pearson 65.3–94.4%; azar 33.3%). Por grupo de rasgos: mirada
+  66.7%, párpados 56.7%, cejas 73.3%. La señal viene sobre todo de cejas
+  y postura de cabeza, no de la mirada. Limitación: los gestos se
+  grabaron en bloques, así que la clase se confunde con el paso del
+  tiempo (cansancio, luz, postura); una persona, una sesión.
+- **Decisión:** el canal de puntero por defecto pasa a ser la **cabeza**
+  (yaw/pitch de la matriz de orientación facial), con la mirada como
+  canal opcional. Herramientas nuevas: monitor del operador con avisos
+  de entorno, métricas de entorno por sesión y tendencia entre sesiones
+  (`mirada_progreso.py`). Ver `CHANGELOG.md`.
+- **Pendiente:** control positivo del instrumento; primera sesión del
+  canal cabeza (aún sin datos); gestos en orden aleatorio para separar
+  clase de deriva temporal.
+
 ## Próximos hallazgos a documentar
 
 - Resultados de la ampliación de la serie de casos (más allá de YP).

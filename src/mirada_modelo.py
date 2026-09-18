@@ -87,7 +87,8 @@ def retardo_ms(pred: np.ndarray, blanco: np.ndarray, t: np.ndarray,
 
 
 def metricas_persecucion(t: np.ndarray, blanco: np.ndarray,
-                         pred: np.ndarray, pantalla: tuple[int, int]) -> dict:
+                         pred: np.ndarray, pantalla: tuple[int, int],
+                         max_retardo_s: float = 1.0) -> dict:
     """Métricas de la persecución. blanco y pred: (n, 2) en píxeles."""
     ancho, alto = pantalla
     diagonal = float(np.hypot(ancho, alto))
@@ -104,8 +105,8 @@ def metricas_persecucion(t: np.ndarray, blanco: np.ndarray,
         "mejora_vs_constante": 1.0 - rmse / (rmse_const + 1e-9),
         "r_x": _pearson(pred[:, 0], blanco[:, 0]),
         "r_y": _pearson(pred[:, 1], blanco[:, 1]),
-        "retardo_x_ms": retardo_ms(pred[:, 0], blanco[:, 0], t),
-        "retardo_y_ms": retardo_ms(pred[:, 1], blanco[:, 1], t),
+        "retardo_x_ms": retardo_ms(pred[:, 0], blanco[:, 0], t, max_retardo_s),
+        "retardo_y_ms": retardo_ms(pred[:, 1], blanco[:, 1], t, max_retardo_s),
     }
 
 
@@ -134,3 +135,44 @@ def suavizar(pred: np.ndarray, k: int = 5) -> np.ndarray:
     nucleo = np.ones(k) / k
     return np.stack([np.convolve(relleno[:, j], nucleo, mode="valid")
                      for j in range(pred.shape[1])], axis=1)
+
+
+# --------------------------------------------------------------------------
+# Puntero con la cabeza (canal alternativo cuando mover los ojos es difícil)
+# --------------------------------------------------------------------------
+
+def angulos_cabeza(R: np.ndarray) -> tuple[float, float, float]:
+    """(yaw, pitch, roll) en grados de una matriz de rotación 3x3, con la
+    convención R = Rz(roll) @ Ry(yaw) @ Rx(pitch). Normaliza las columnas
+    para tolerar la escala que trae la matriz de MediaPipe."""
+    R = np.asarray(R, dtype=float)[:3, :3]
+    R = R / (np.linalg.norm(R, axis=0) + 1e-12)
+    yaw = np.degrees(np.arcsin(np.clip(-R[2, 0], -1.0, 1.0)))
+    pitch = np.degrees(np.arctan2(R[2, 1], R[2, 2]))
+    roll = np.degrees(np.arctan2(R[1, 0], R[0, 0]))
+    return float(yaw), float(pitch), float(roll)
+
+
+def rasgos_cabeza(lm, matriz: np.ndarray) -> np.ndarray:
+    """Vector de 6 rasgos de cabeza: yaw, pitch, roll (grados), posición de
+    la nariz (x, y) y razón de giro entre mejillas."""
+    yaw, pitch, roll = angulos_cabeza(matriz)
+    giro = _razon(lm[NARIZ].x, lm[MEJILLA_A].x, lm[MEJILLA_B].x)
+    return np.array([yaw, pitch, roll, lm[NARIZ].x, lm[NARIZ].y, giro])
+
+
+def error_calibracion_lopo(X: np.ndarray, Y: np.ndarray,
+                           lam: float = 1e-2) -> float:
+    """Error medio (px) de la calibración dejando cada punto fuera. Es una
+    medida conservadora (los puntos de las esquinas se extrapolan) pensada
+    para comparar sesiones entre sí, no como error absoluto de uso."""
+    puntos = np.unique(np.round(Y, 0), axis=0)
+    errores = []
+    for p in puntos:
+        fuera = np.all(np.round(Y, 0) == p, axis=1)
+        if fuera.all() or not fuera.any():
+            continue
+        modelo = ajustar_ridge(X[~fuera], Y[~fuera], lam)
+        errores.append(np.linalg.norm(predecir(modelo, X[fuera]) - Y[fuera],
+                                      axis=1).mean())
+    return float(np.mean(errores)) if errores else float("nan")

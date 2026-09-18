@@ -3,6 +3,32 @@
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/),
 versionado según [SemVer](https://semver.org/lang/es/).
 
+## [Sin publicar]
+
+### Añadido
+- Canal facial exploratorio: captura pareada pose + cara con MediaPipe
+  Face Landmarker (`gestos_cara_grabar.py`, `cara_analizar.py`) y sesión
+  unificada `SESION_NUEVA_YP.bat` (voz y luego gestos + cara, en
+  secuencia, nunca a la vez).
+- Prueba de persecución con puntero (`persecucion_mirada.py`): calibración
+  de 9 puntos + blanco móvil, con canal cabeza (por defecto) o mirada.
+  Métricas: error, mejora frente a apuntar al centro, correlación,
+  retardo. Matemática aparte y con tests (`mirada_modelo.py`).
+- Monitor del operador (`monitor_operador.py`): ventana pequeña con los
+  puntos capturados y avisos de luz, distancia, encuadre y fps.
+- Métricas de entorno por sesión y tendencia entre sesiones
+  (`mirada_progreso.py`); diagnóstico reproducible por sesión
+  (`mirada_diagnostico.py`).
+- `grabar.py --nuevas N`: graba N muestras nuevas por palabra aunque ya
+  se haya alcanzado el objetivo de `config.json`.
+
+### Corregido
+- Las grabadoras terminaban sin capturar cuando las muestras existentes
+  ya superaban el objetivo de `config.json`.
+- Persecución: la ventana a pantalla completa tapaba la consola y el
+  inicio parecía colgado; el blanco se dibujaba a la velocidad de la
+  cámara y se veía a saltos (ahora hilo de cámara aparte y ~60 fps).
+
 ## [0.2.0] — 2026-09-01
 
 ### Añadido
