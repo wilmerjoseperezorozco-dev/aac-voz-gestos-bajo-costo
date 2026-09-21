@@ -1,7 +1,7 @@
 @echo off
 call "%~dp0_base.bat" || exit /b 1
 cd /d "%~dp0.."
-py -3.12 srcscalones_cabeza.py %*
+py -3.12 src\escalones_cabeza.py %*
 if errorlevel 1 (
     echo.
     echo Hubo un error al ejecutar. Revisa el mensaje de arriba.
