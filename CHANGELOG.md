@@ -6,6 +6,14 @@ versionado según [SemVer](https://semver.org/lang/es/).
 ## [Sin publicar]
 
 ### Añadido
+- Aumento de datos de voz por perturbación de señal (`aumento_datos_voz.py`):
+  velocidad 0.9x/1.1x + ruido leve sobre grabaciones reales, con
+  trazabilidad a su archivo original. Validación cruzada agrupada
+  (`ClasificadorPalabras.evaluar_loocv_agrupado()` en `modelo.py`,
+  usada por `entrenar_con_aumento.py`) que excluye del entrenamiento
+  las copias sintéticas de la muestra evaluada, para no inflar la
+  exactitud. Resultado real (no el que salió antes de corregir un bug
+  de fuga, ver RESEARCH_LOG 2026-09-22): +1.6 puntos porcentuales.
 - Canal facial exploratorio: captura pareada pose + cara con MediaPipe
   Face Landmarker (`gestos_cara_grabar.py`, `cara_analizar.py`) y sesión
   unificada `SESION_NUEVA_YP.bat` (voz y luego gestos + cara, en

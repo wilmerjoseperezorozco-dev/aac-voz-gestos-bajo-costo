@@ -4,6 +4,11 @@ data_gestos/
 data_vivo_confirmada/
 data_descartes/
 
+# Variantes sintéticas derivadas de grabaciones reales (perturbación de
+# señal): igual de sensibles que data/, conservan su timbre y patrón de
+# habla — no son datos anonimizados.
+data_aumentado/
+
 # Modelos entrenados: contienen secuencias MFCC/pose derivadas de su voz
 # y movimiento reales — son datos biométricos derivados, no solo pesos.
 modelos/

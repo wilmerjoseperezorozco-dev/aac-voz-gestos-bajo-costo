@@ -108,6 +108,65 @@ class ClasificadorPalabras:
             "por_palabra": por_palabra,
         }
 
+    def evaluar_loocv_agrupado(self, grupos: list[str],
+                              evaluables: list[bool] | None = None) -> dict:
+        """LOOCV que excluye, junto con la muestra dejada fuera, a todas
+        las que comparten su mismo `grupo` (p. ej. una grabación real y
+        sus variantes aumentadas por perturbación de señal comparten el
+        nombre del archivo original como valor de `grupo`).
+
+        `evaluar_loocv()` deja fuera solo el índice `i`: si hay copias
+        sintéticas casi idénticas de esa misma grabación en el resto del
+        entrenamiento, el modelo "hace trampa" reconociendo a su propio
+        casi-duplicado, no aprendiendo el patrón general — la exactitud
+        sale inflada de forma artificial. `evaluables` marca qué índices
+        pueden usarse como caso de prueba (típicamente solo las muestras
+        reales, no las sintéticas) — si se omite, se evalúan todas.
+        """
+        if len(grupos) != len(self.referencias):
+            raise ValueError("grupos debe tener igual tamaño que las referencias")
+        if evaluables is None:
+            evaluables = [True] * len(self.referencias)
+        elif len(evaluables) != len(self.referencias):
+            raise ValueError("evaluables debe tener igual tamaño que las referencias")
+        palabras = sorted(set(self.etiquetas))
+        indice = {p: i for i, p in enumerate(palabras)}
+        confusion = np.zeros((len(palabras), len(palabras)), dtype=int)
+        aciertos = 0
+        evaluadas = 0
+        for i, (seq, real, grupo) in enumerate(
+                zip(self.referencias, self.etiquetas, grupos)):
+            if not evaluables[i]:
+                continue  # las sintéticas nunca son caso de prueba
+            temporal = ClasificadorPalabras(self.k, self.umbral_confianza)
+            temporal.entrenar(
+                [s for j, s in enumerate(self.referencias)
+                 if j != i and grupos[j] != grupo],
+                [e for j, e in enumerate(self.etiquetas)
+                 if j != i and grupos[j] != grupo])
+            prediccion, _ = temporal.predecir(seq)
+            confusion[indice[real], indice[prediccion]] += 1
+            evaluadas += 1
+            if prediccion == real:
+                aciertos += 1
+        por_palabra = {
+            p: {
+                "muestras": int(confusion[indice[p]].sum()),
+                "aciertos": int(confusion[indice[p], indice[p]]),
+                "exactitud": float(confusion[indice[p], indice[p]]
+                                   / max(1, confusion[indice[p]].sum())),
+            }
+            for p in palabras
+        }
+        return {
+            "exactitud_global": aciertos / max(1, evaluadas),
+            "total_muestras_evaluadas": evaluadas,
+            "total_muestras_entrenamiento": len(self.referencias),
+            "palabras": palabras,
+            "matriz_confusion": confusion.tolist(),
+            "por_palabra": por_palabra,
+        }
+
     def guardar(self, ruta: Path) -> None:
         ruta = Path(ruta)
         ruta.parent.mkdir(parents=True, exist_ok=True)

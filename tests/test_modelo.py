@@ -93,3 +93,37 @@ def test_predecir_sin_entrenar_lanza_error_claro():
     clf = ClasificadorPalabras()
     with pytest.raises(RuntimeError):
         clf.predecir(np.zeros((5, 13)))
+
+
+def test_loocv_agrupado_excluye_duplicados_del_mismo_grupo():
+    """Si una muestra tiene un "hermano" casi idéntico en su mismo grupo
+    (p. ej. una copia aumentada de la misma grabación) pero las demás
+    clases están mezcladas al azar, evaluar_loocv() simple debe acertar
+    por fuga de información (el duplicado sigue en el set de
+    entrenamiento), mientras que evaluar_loocv_agrupado() -que excluye
+    el grupo completo- debe fallar sistemáticamente en ese caso, porque
+    sin su duplicado ni patrón real que aprender, el ruido puro no
+    ofrece señal de clase.
+
+    Esto reproduce, de forma controlada y sin datos reales, el bug de
+    fuga (claves de grupo que nunca coincidían) que se encontró y
+    corrigió al validar el aumento de datos con datos reales de YP."""
+    rng = np.random.default_rng(4)
+    ruido_a = rng.standard_normal((20, 13))
+    ruido_b = rng.standard_normal((20, 13))
+
+    secuencias = [ruido_a, ruido_a + rng.standard_normal((20, 13)) * 0.001,
+                 ruido_b, ruido_b + rng.standard_normal((20, 13)) * 0.001]
+    etiquetas = ["a", "a", "b", "b"]
+    grupos = ["g_a", "g_a", "g_b", "g_b"]
+
+    clf = ClasificadorPalabras(k=1)
+    clf.entrenar(secuencias, etiquetas)
+
+    simple = clf.evaluar_loocv()
+    assert simple["exactitud_global"] == pytest.approx(1.0)
+
+    evaluables = [True, False, True, False]
+    agrupado = clf.evaluar_loocv_agrupado(grupos, evaluables)
+    assert agrupado["total_muestras_evaluadas"] == 2
+    assert agrupado["exactitud_global"] < 1.0

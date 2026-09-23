@@ -465,6 +465,59 @@ No se implementa nada todavía — queda como hoja de ruta priorizada:
    contra el clasificador propio, sobre los mismos datos de YP, para
    tener una cifra de referencia externa además del LOOCV interno.
 
+### 2026-09-22 — Punto 1 implementado: aumento de datos por perturbación de señal (no TTS)
+
+Se implementó el punto 1 del plan anterior, pero **con un cambio deliberado
+de diseño respecto a lo planteado originalmente**: en vez de TTS/voice
+cloning entrenado sobre la voz de YP (lo que exigiría un consentimiento
+específico aparte, distinto al ya firmado para grabación y análisis), se
+usó **perturbación de velocidad** (resamplear a 0.9x/1.1x — técnica
+establecida, Ko et al. 2015, *Audio Augmentation for Speech Recognition*,
+ampliamente citada en ASR) más ruido gaussiano leve, aplicada a las
+grabaciones reales ya existentes. Mismo objetivo (más datos de
+entrenamiento sin sesión nueva), sin sintetizar ninguna voz que no sea
+genuinamente de YP.
+
+**Bug de fuga de información encontrado y corregido antes de reportar
+resultados** (coherente con la norma del proyecto de nunca reportar una
+cifra sin verificarla): la primera versión de la validación cruzada
+agrupada (`evaluar_loocv_agrupado()` en `modelo.py`) usaba claves de
+grupo que nunca coincidían entre una grabación real (`"real:{índice}"`)
+y sus copias sintéticas (`"aug:{archivo_original}"`) — la exclusión de
+"hermanos" sintéticos nunca se activaba. Resultado: **100.0% de
+exactitud en las 11 palabras**, cifra estadísticamente inverosímil que
+disparó la sospecha de fuga antes de documentarla. Se corrigió usando el
+nombre real del archivo como clave de grupo compartida entre el original
+y sus derivados, y se agregó `test_loocv_agrupado_excluye_duplicados_del_mismo_grupo()`
+en `tests/test_modelo.py` que reproduce el patrón de fuga con datos
+sintéticos controlados, para que no se repita en silencio si se toca
+este código más adelante.
+
+**Resultado real, tras la corrección** (`src/entrenar_con_aumento.py`,
+190 muestras reales + 570 sintéticas, LOOCV agrupado por grabación
+original):
+
+| Escenario | Exactitud global |
+|---|---|
+| Solo datos reales (línea base) | 71.6% |
+| Reales + aumentados (agrupado, sin fuga) | 73.2% |
+
+**+1.6 puntos porcentuales** — mejora real pero modesta, no el 28.4pp
+que había mostrado la versión con el bug. Por palabra: mejora en
+`bano` (+5.9pp), `comer` (+5.0pp), `dolor` (+4.8pp), `mama` (+4.8pp);
+sin cambio en `agua`, `ayuda`, `cansada`, `frio`, `salir`, `si`;
+empeora en `no` (-6.7pp). Reporte completo en
+`reportes/comparacion_aumento_20260922_212931.json`.
+
+**Lectura honesta:** el aumento de datos por perturbación de señal
+ayuda un poco, no transforma el sistema — consistente con que la banda
+de Sakoe-Chiba y la normalización de DTW ya toleran cierta variación de
+velocidad por sí solas, así que la señal nueva que aporta la
+perturbación es limitada. El punto 1 del plan queda cerrado con este
+resultado documentado tal cual salió; los puntos 2-4 (embeddings SSL,
+fusión voz+gesto, benchmark externo) siguen pendientes y no se
+priorizan automáticamente por este resultado modesto.
+
 ## Próximos hallazgos a documentar
 
 - Resultados de la ampliación de la serie de casos (más allá de YP).
