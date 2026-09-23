@@ -298,6 +298,71 @@ teórica previa que no existió.
 - **Siguiente:** control del canal mirada, y luego la primera sesión de
   cabeza con la participante.
 
+## 2026-09-23 — Revisión de literatura reciente en disartria (Scopus)
+
+Revisión dirigida por palabras clave en Scopus de artículos sobre
+disartria publicados en 2026, con dos hallazgos aplicables al proyecto
+y dos de contexto clínico más amplio.
+
+- **Instrumento de autopercepción validado para la memoria (LwD):**
+  Peres et al. (2026) validaron una versión reducida de 12 ítems del
+  cuestionario *Living with Dysarthria* (LwD) en 47 personas con
+  esclerosis múltiple, con correlación significativa entre el puntaje
+  total y la severidad clínica de disartria (r=0.31, p=0.027) y
+  consistencia interna alta (α=0.914). El **tiempo de fonación**
+  (duración real de habla sin pausas, extraído de habla espontánea)
+  fue el único predictor independiente del puntaje de autopercepción,
+  explicando el 20.6% de la varianza (R²=0.206, p=0.006). Protocolo de
+  grabación usado: vocal sostenida /a/, diptongo /iu/ repetido,
+  diadococinesia /pataka/, oraciones con distinta entonación, y 60 s de
+  habla espontánea — grabado con Praat (De Jong & Wempe, 2009) para
+  detección automática de núcleos silábicos.
+  Peres, M.L.M.K., Schuh, N., dos Santos, V.B., & Olchik, M.R. (2026).
+  Self-perception of speech impairment in MS: Associations with
+  dysarthria severity and speech measures. *Multiple Sclerosis and
+  Related Disorders, 112*, 107342.
+  https://doi.org/10.1016/j.msard.2026.107342
+- **Datasets públicos de habla disártrica para validación externa
+  (TORGO, UA-Speech):** dos artículos técnicos de 2026 usan estos
+  corpus públicos en inglés para entrenar y evaluar clasificadores de
+  disartria con embeddings de wav2vec2. Hallazgo técnico relevante para
+  una futura migración de arquitectura: las **capas intermedias** del
+  modelo (no la última) capturan mejor los rasgos articulatorios de la
+  disartria — la última capa está optimizada para tareas lingüísticas,
+  no motoras.
+  Salim, S., Shahnawazuddin, S., & Ahmad, W. (2026). Towards inclusive
+  voice biometrics: Dysarthria-discriminative embeddings for ASV
+  system. *Computers and Electrical Engineering, 140*, 111531.
+  https://doi.org/10.1016/j.compeleceng.2026.111531
+  Sanjay, B., Vijayalakshmi, P., Actlin Jeeva, M.P., Priyadharshini,
+  M.K., & Nagarajan, T. (2026). Multilingual dysarthria detection and
+  severity classification using layer-wise embeddings from
+  self-supervised speech models. *Speech Communication, 183*, 103464.
+  https://doi.org/10.1016/j.specom.2026.103464
+- **Contexto clínico (no aplicable directamente al software):**
+  disartria inducida o agravada por estimulación cerebral profunda en
+  Parkinson, con mejora reportada usando frecuencia de estimulación
+  variable en un caso.
+  Jia, F., Guo, Y., Wan, S., & Li, L. (2017). Severe subthalamic
+  stimulation-induced dysarthria alleviated by a novel paradigm: A case
+  report. *Journal of the Neurological Sciences, 372*, 270–271.
+  https://doi.org/10.1016/j.jns.2016.11.048
+- **Contexto clínico, fuera de alcance de las condiciones priorizadas:**
+  ataxia cerebelosa autoinmune (anticuerpos anti-Ca/ARHGAP26) con
+  disartria como uno de varios síntomas — mecanismo autoinmune raro,
+  no motor puro; no se suma a `ruta-expansion-condiciones-neurologicas.md`.
+  Wallwitz, U., Brock, S., Schunck, A., Wildemann, B., Jarius, S., &
+  Hoffmann, F. (2017). From dizziness to severe ataxia and dysarthria:
+  New cases of anti-Ca/ARHGAP26 autoantibody-associated cerebellar
+  ataxia suggest a broad clinical spectrum. *Journal of
+  Neuroimmunology, 309*, 77–81.
+  https://doi.org/10.1016/j.jneuroim.2017.05.011
+- **Próximo paso real:** evaluar agregar el protocolo de grabación del
+  LwD (vocal sostenida, diadococinesia, habla espontánea de 60 s) como
+  tarea adicional en las sesiones con la participante, y considerar
+  TORGO/UA-Speech como referencia de validación externa del clasificador
+  actual.
+
 ## Próximos hallazgos a documentar
 
 - Resultados de la ampliación de la serie de casos (más allá de YP).
