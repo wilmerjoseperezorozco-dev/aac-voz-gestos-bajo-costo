@@ -363,6 +363,108 @@ y dos de contexto clínico más amplio.
   TORGO/UA-Speech como referencia de validación externa del clasificador
   actual.
 
+## 2026-09-23 (continuación) — Segunda tanda de literatura Scopus: arquitecturas de reconocimiento de habla disártrica
+
+Segunda revisión dirigida por palabras clave, 20 artículos evaluados; 7
+aprovechables directamente, el resto descartado por coincidencia de
+palabra clave sin relación temática real (ej. "few-shot" en detección
+de objetos 3D, "acoustic" en marcadores de biopsia por ultrasonido,
+"eye-tracking" en dermatología/educación de enfermería — ver criterio
+de descarte explicado abajo).
+
+**Origen probable del hallazgo de "capas intermedias" ya citado:**
+Javanmardi, F., Kadiri, S.R., & Alku, P. (2024). Pre-trained models for
+detection and severity level classification of dysarthria from speech.
+*Computer Speech & Language*. Compara wav2vec2-BASE, wav2vec2-LARGE y
+HuBERT como extractores de características, con OpenSMILE/eGeMAPS como
+línea base. Es anterior (2024) a los dos papers de capas intermedias ya
+citados el 23-sep — probablemente su referencia de origen.
+
+**Multimodal voz+gestos (el más directamente alineado con la arquitectura del proyecto):**
+Lin, Y., Wang, L., Dang, J., & Minematsu, N. (2026). Gestural feature
+extraction and multi-feature co-activation for dysarthric speech
+recognition. *Information Fusion, 125*, 103490.
+https://doi.org/10.1016/j.inffus.2025.103490
+
+**Aumento de datos con voz sintética (resuelve el problema real de "10 muestras por palabra"):**
+Vijayalakshmi, P., Gladston, A.R., Ramani, B., Actlin Jeeva, M.P.,
+Anantha Krishnan, K., Lavanya, T., & Nagarajan, T. (2026). Leveraging
+synthetic speech: TTS-driven data augmentation for effective dysarthric
+speech recognition. *Computer Speech & Language, 100*, 101961.
+https://doi.org/10.1016/j.csl.2026.101961
+
+**Modelos auto-supervisados aplicados a detección de palabra clave (mismo objetivo que `predecir.py`):**
+Sapkota, P., Kathania, H.K., & Kutum, S. (2026). Role of SSL models:
+Finetuning and feature optimization for dysarthric speech recognition
+and keyword spotting. *Computers and Electrical Engineering, 131*,
+110921. https://doi.org/10.1016/j.compeleceng.2026.110921
+
+**Multimodal acústico-articulatorio (complementa el anterior):**
+Yue, Z., Loweimi, E., Cvetkovic, Z., Barker, J., & Christensen, H.
+(2026). Raw acoustic-articulatory multimodal dysarthric speech
+recognition. *Computer Speech & Language, 95*, 101839.
+https://doi.org/10.1016/j.csl.2025.101839
+
+**Arquitecturas conformer/generativas de referencia técnica secundaria** (mismo problema, arquitecturas distintas — no desarrolladas en detalle aquí):
+Song, Y. (2025). TAC-DASR: Temporal-aggregated Conformer with data
+augmentation for dysarthric automatic speech recognition.
+*Expert Systems with Applications*.
+Yuan, H., Song, Y., Duan, X., Tao, Q., Zhang, N., & Yu, Y. (2026).
+PPFR-conformer for dysarthria speech recognition: from phoneme
+perception to feature refinement. *Neurocomputing, 671*, 132684.
+Rajeswari, N., & Chandrakala, S. Generative Model-Driven Feature
+Learning for dysarthric speech recognition. *Speech Communication*.
+
+**Contexto clínico (ELA), no aplicable al software directamente:**
+Liu, X., Fu, W., Cui, X., et al. (2026). Huoling Shengji granule in
+amyotrophic lateral sclerosis: A multicenter, randomized, double-blind,
+riluzole-controlled trial.
+Castillo-Allendes, A., & Hunter, E.J. (2026). Acoustic Markers of
+Laryngeal Function and Swallowing Safety in Community-Dwelling Older
+Adults: An Exploratory Study. Relevante como nota de comorbilidad
+(disfagia bulbar junto a disartria en ELA), no como funcionalidad.
+
+**Descartados explícitamente** (coincidencia de palabra clave sin
+relación temática real, no se citan): dos papers de "few-shot" en
+detección de objetos 3D y reconocimiento de imágenes open-set;
+ingeniería de materiales de marcadores de biopsia por ultrasonido;
+eye-tracking en dermatología y en educación de enfermería; genética
+(inestabilidad genómica) en ALS. Se documenta el descarte para no
+repetir la misma búsqueda de palabras clave sin filtrar el dominio.
+
+**Zona gris, metodología aprovechable aunque el tema no coincide:**
+Cotton, K., & Selioutski, L. (2027). Gaze behavior during walking in
+older adults: A systematic review of eye-tracking research. *Gait &
+Posture, 131*, 110641. Útil como referencia de cómo reportar
+metodología de eye-tracking si `persecucion_mirada.py` se documenta
+formalmente, no por el tema (marcha, no disartria).
+
+### Plan de evolución técnica a partir de estos métodos
+
+No se implementa nada todavía — queda como hoja de ruta priorizada:
+
+1. **Aumento de datos con TTS (más barato y rápido de probar primero):**
+   generar variantes sintéticas de las palabras del vocabulario con
+   parámetros de habla lenta/distorsionada, para ampliar el conjunto de
+   entrenamiento más allá de las 10 muestras reales por palabra, sin
+   sesiones nuevas con la participante.
+2. **Extractor de características SSL (wav2vec2/HuBERT) como alternativa a MFCC:**
+   evaluar si reemplazar o complementar MFCC con embeddings de una capa
+   intermedia de wav2vec2-BASE mejora la exactitud del k-NN+DTW actual,
+   siguiendo el hallazgo de capas intermedias de Javanmardi et al. y los
+   papers ya citados el 23-sep. Requiere benchmarking contra el pipeline
+   actual antes de reemplazar nada.
+3. **Fusión explícita voz+gesto a nivel de características (no solo por consenso):**
+   hoy el sistema decide con voz o con gestos por separado y compara
+   consenso; el paper de Lin et al. sugiere co-activación de
+   características de ambos canales en el mismo modelo — evaluar como
+   alternativa de diseño, no reemplazo inmediato del enfoque secuencial
+   ya validado (que evita la interferencia cognitivo-motora documentada).
+4. **Keyword spotting con modelos SSL como comparación externa:**
+   usar el enfoque de Sapkota et al. como línea base de comparación
+   contra el clasificador propio, sobre los mismos datos de YP, para
+   tener una cifra de referencia externa además del LOOCV interno.
+
 ## Próximos hallazgos a documentar
 
 - Resultados de la ampliación de la serie de casos (más allá de YP).
